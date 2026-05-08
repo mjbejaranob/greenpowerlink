@@ -1,21 +1,39 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import DentalLayout from '../../layouts/DentalLayout.astro';
 ---
 
-<Layout title="SmileTech Dental | Booking">
-  <main class="min-h-screen bg-slate-950 text-slate-100 p-8 md:p-16 max-w-2xl mx-auto">
-    <a href="/demo" class="text-blue-400 mb-8 inline-block">← Back to Portal</a>
-    <h1 class="text-3xl font-bold mb-8 text-green-400">Schedule Your Visit</h1>
-    <form class="space-y-6 bg-slate-900 p-8 rounded-xl border border-slate-700">
+<DentalLayout title="SmileTech Dental | Appointment">
+  <main class="min-h-screen p-8 md:p-16 max-w-2xl mx-auto">
+    <a href="/demo" class="text-blue-600 hover:text-blue-800 font-bold mb-8 inline-block">← Back to Portal</a>
+    <h1 class="text-4xl font-bold mb-8 text-blue-900">Schedule Your Visit</h1>
+    
+    <form id="bookingForm" class="space-y-6 bg-white p-8 rounded-3xl border border-blue-100 shadow-sm">
       <div>
-        <label class="block mb-2 text-sm">Full Name</label>
-        <input type="text" class="w-full bg-slate-950 p-3 rounded border border-slate-700 focus:border-green-500 outline-none" />
+        <label class="block mb-2 text-sm font-semibold text-slate-700">Full Name</label>
+        <input type="text" required class="w-full bg-blue-50 p-4 rounded-xl border border-blue-100 focus:border-teal-500 outline-none transition-all" />
       </div>
       <div>
-        <label class="block mb-2 text-sm">Preferred Date</label>
-        <input type="date" class="w-full bg-slate-950 p-3 rounded border border-slate-700 focus:border-green-500 outline-none" />
+        <label class="block mb-2 text-sm font-semibold text-slate-700">Preferred Date</label>
+        <input type="date" required class="w-full bg-blue-50 p-4 rounded-xl border border-blue-100 focus:border-teal-500 outline-none transition-all cursor-pointer" />
       </div>
-      <button type="submit" class="w-full bg-green-600 py-3 rounded-lg font-bold">Request Appointment</button>
+      <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 py-4 rounded-xl text-white font-bold transition-all shadow-lg shadow-teal-200">
+        Request Appointment
+      </button>
     </form>
+
+    <div id="successMessage" class="hidden mt-8 p-6 bg-teal-50 border border-teal-200 rounded-2xl text-teal-800 text-center">
+      <p class="font-bold">Request Received!</p>
+      <p class="text-sm">We will contact you shortly to confirm your booking.</p>
+    </div>
   </main>
-</Layout>
+</DentalLayout>
+
+<script>
+  const form = document.getElementById('bookingForm') as HTMLFormElement;
+  const success = document.getElementById('successMessage');
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    form.classList.add('hidden');
+    success?.classList.remove('hidden');
+  });
+</script>
