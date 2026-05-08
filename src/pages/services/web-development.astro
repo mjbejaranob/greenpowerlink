@@ -3,8 +3,10 @@ import ServiceLayout from '../../layouts/ServiceLayout.astro';
 
 const features = [
   "Custom Web Applications (React, Astro, Node.js)",
+  "CMS Integration (Headless CMS for content management)",
+  "Booking & Appointment Management Systems",
+  "E-commerce & Secure Payment Integration",
   "SEO Optimization & Performance Auditing",
-  "API Design & Integration",
   "Secure Hosting & Infrastructure Setup"
 ];
 ---
@@ -13,4 +15,10 @@ const features = [
   title="Web Development" 
   description="High-performance digital platforms. From custom web applications to scalable business portals, I build secure, fast, and modern web infrastructure."
   features={features}
-/>
+>
+  <div class="mt-10 p-6 bg-blue-900/20 border border-blue-500/30 rounded-xl">
+    <h3 class="text-xl font-bold mb-4 text-blue-300">Live Professional Demo</h3>
+    <p class="mb-6 text-slate-300">Experience a high-level, production-ready interface. This demo showcases user authentication, a booking flow, and a shop interface with integrated payment simulation.</p>
+    <a href="https://demo.greenpowerlink.com.au" target="_blank" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition-all">Launch Live Demo</a>
+  </div>
+</ServiceLayout>
