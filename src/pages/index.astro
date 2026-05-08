@@ -2,33 +2,14 @@
 import Layout from '../layouts/Layout.astro';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { Code, Box, Cpu, GanttChart, DraftingCompass } from 'lucide-astro';
 
 const services = [
-  { 
-    name: 'Web Development', 
-    color: 'blue', 
-    desc: 'High-performance digital platforms. From custom web applications to scalable business portals, I build secure, fast, and modern web infrastructure.' 
-  },
-  { 
-    name: 'Product Development', 
-    color: 'green', 
-    desc: 'Turn concepts into reality. I guide your product through the entire lifecycle, including prototyping, iterative design, and manufacturing readiness.' 
-  },
-  { 
-    name: 'PCB Development', 
-    color: 'purple', 
-    desc: 'Precision electronics design. Expert schematic capture and PCB layout, optimized for signal integrity, thermal management, and manufacturability.' 
-  },
-  { 
-    name: 'Project Management', 
-    color: 'yellow', 
-    desc: 'Engineering leadership for complex projects. I provide structured oversight, risk mitigation, and technical coordination to ensure your goals are met on time.' 
-  },
-  { 
-    name: 'Mechanical Drafting', 
-    color: 'red', 
-    desc: 'CAD-perfect documentation. Technical drafting and 3D modeling services with a focus on manufacturing tolerances, assemblies, and detailed technical specifications.' 
-  },
+  { name: 'Web Development', color: 'blue', icon: Code, desc: 'High-performance digital platforms. From custom web applications to scalable business portals, I build secure, fast, and modern web infrastructure.' },
+  { name: 'Product Development', color: 'green', icon: Box, desc: 'Turn concepts into reality. I guide your product through the entire lifecycle, including prototyping, iterative design, and manufacturing readiness.' },
+  { name: 'PCB Development', color: 'purple', icon: Cpu, desc: 'Precision electronics design. Expert schematic capture and PCB layout, optimized for signal integrity, thermal management, and manufacturability.' },
+  { name: 'Project Management', color: 'yellow', icon: GanttChart, desc: 'Engineering leadership for complex projects. I provide structured oversight, risk mitigation, and technical coordination to ensure your goals are met on time.' },
+  { name: 'Mechanical Drafting', color: 'red', icon: DraftingCompass, desc: 'CAD-perfect documentation. Technical drafting and 3D modeling services with a focus on manufacturing tolerances, assemblies, and detailed technical specifications.' },
 ];
 
 let version = 'dev';
@@ -62,7 +43,7 @@ try {
         {services.map((service) => (
           <button class="group p-8 bg-slate-900/50 border border-slate-800 rounded-2xl backdrop-blur-sm hover:bg-slate-800/50 hover:border-slate-600 transition-all duration-500 ease-out hover:-translate-y-2 hover:shadow-2xl text-left w-full">
             <div class={`w-12 h-12 mb-6 rounded-lg bg-${service.color}-500/10 flex items-center justify-center border border-${service.color}-500/20 group-hover:scale-110 transition-transform`}>
-              <div class={`w-6 h-6 bg-${service.color}-500 rounded-sm`}></div>
+              <service.icon class={`w-6 h-6 text-${service.color}-500`} />
             </div>
             <h2 class="text-2xl font-bold mb-3">{service.name}</h2>
             <p class="text-slate-400 mb-6 text-sm leading-relaxed">{service.desc}</p>
