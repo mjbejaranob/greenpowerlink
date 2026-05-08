@@ -1,0 +1,28 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Code } from 'lucide-astro';
+
+const { title, description, features } = Astro.props;
+---
+
+<Layout title={`GreenPowerLink | ${title}`}>
+  <main class="min-h-screen bg-slate-950 text-slate-100 p-8 md:p-16 max-w-4xl mx-auto font-sans">
+    <a href="/" class="text-blue-400 hover:text-blue-300 transition-colors mb-8 inline-block">← Back to Services</a>
+    
+    <header class="mb-12">
+      <h1 class="text-5xl font-extrabold mb-4">{title}</h1>
+      <p class="text-xl text-slate-400">{description}</p>
+    </header>
+
+    <section class="bg-slate-900/50 p-8 rounded-2xl border border-slate-800">
+      <h2 class="text-2xl font-bold mb-6">Key Offerings</h2>
+      <ul class="space-y-4">
+        {features.map((feature: string) => (
+          <li class="flex items-center gap-3">
+            <span class="text-green-500">✔</span> {feature}
+          </li>
+        ))}
+      </ul>
+    </section>
+  </main>
+</Layout>
