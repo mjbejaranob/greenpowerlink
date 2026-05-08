@@ -5,7 +5,9 @@ const features = [
   "End-to-End Product Design Lifecycle",
   "Rapid Prototyping & Iterative Design",
   "Design for Manufacturing (DFM)",
-  "Technical Documentation & Specifications"
+  "Technical Documentation & Specifications",
+  "Compliance Standards Analysis",
+  "EMC Testing Support & Pre-compliance Testing"
 ];
 ---
 
@@ -13,4 +15,31 @@ const features = [
   title="Product Development" 
   description="Turn concepts into reality. I guide your product through the entire lifecycle, including prototyping, iterative design, and manufacturing readiness."
   features={features}
-/>
+>
+  <div class="mt-12 space-y-12">
+    <!-- Lifecycle Flowchart -->
+    <div>
+      <h3 class="text-2xl font-bold mb-8 text-blue-300">Product Lifecycle Roadmap</h3>
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-2 text-center text-sm font-semibold">
+        {['Idea', 'Design', 'Prototyping', 'Testing', 'Distribution'].map((step, i) => (
+          <div class="flex flex-col items-center">
+            <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white mb-2 shadow-lg">{i + 1}</div>
+            <div class="text-slate-300">{step}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Compliance Section -->
+    <div class="grid md:grid-cols-2 gap-8">
+      <div class="p-6 bg-slate-800/50 rounded-xl border border-slate-700">
+        <h4 class="font-bold text-lg mb-3 text-teal-400">Compliance Analysis</h4>
+        <p class="text-sm text-slate-400">Full analysis of regulatory standards (FCC, CE, UL) applicable to your product domain, ensuring market-entry readiness.</p>
+      </div>
+      <div class="p-6 bg-slate-800/50 rounded-xl border border-slate-700">
+        <h4 class="font-bold text-lg mb-3 text-teal-400">EMC Testing Support</h4>
+        <p class="text-sm text-slate-400">Pre-compliance electromagnetic compatibility testing to identify and resolve noise issues early, avoiding costly certification failures.</p>
+      </div>
+    </div>
+  </div>
+</ServiceLayout>
