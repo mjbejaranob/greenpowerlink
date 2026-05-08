@@ -2,14 +2,31 @@
 import Layout from '../../layouts/Layout.astro';
 ---
 
-<Layout title="GreenPowerLink | Demo Portal">
-  <main class="min-h-screen bg-slate-950 text-slate-100 p-8 md:p-16 max-w-4xl mx-auto">
-    <a href="/" class="text-blue-400 hover:text-blue-300 mb-8 inline-block">← Back to Main Site</a>
-    <h1 class="text-4xl font-bold mb-8">Professional Demo Portal</h1>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <a href="/demo/login" class="p-6 bg-slate-900 border border-slate-700 rounded-xl hover:border-blue-500">Login/Auth</a>
-      <a href="/demo/booking" class="p-6 bg-slate-900 border border-slate-700 rounded-xl hover:border-green-500">Booking System</a>
-      <a href="/demo/shop" class="p-6 bg-slate-900 border border-slate-700 rounded-xl hover:border-purple-500">E-Commerce</a>
+<Layout title="GreenPowerLink | Dental Clinic Demo">
+  <main class="min-h-screen bg-slate-950 text-slate-100 p-8 md:p-16 max-w-5xl mx-auto font-sans">
+    <div class="flex justify-between items-center mb-16">
+      <h1 class="text-3xl font-bold text-blue-400">SmileTech Dental</h1>
+      <a href="/demo/login" class="px-4 py-2 bg-slate-800 rounded-lg text-sm border border-slate-700 hover:border-blue-500">Staff Login</a>
+    </div>
+
+    <header class="text-center mb-20">
+      <h2 class="text-5xl font-extrabold mb-6">Expert Care, Digitally Managed.</h2>
+      <a href="/demo/booking" class="inline-block px-8 py-4 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl transition-all">Book Your Appointment</a>
+    </header>
+
+    <div class="grid md:grid-cols-2 gap-8">
+      <div class="p-8 bg-slate-900 border border-slate-800 rounded-2xl">
+        <h3 class="text-xl font-bold mb-4">Our Services</h3>
+        <ul class="text-slate-400 space-y-2">
+          <li>✔ General Check-ups</li>
+          <li>✔ Cosmetic Dentistry</li>
+          <li>✔ Orthodontics</li>
+        </ul>
+      </div>
+      <div class="p-8 bg-slate-900 border border-slate-800 rounded-2xl">
+        <h3 class="text-xl font-bold mb-4">Patient Portal</h3>
+        <p class="text-slate-400 text-sm">Log in to view your records, message our staff, or reschedule your appointments.</p>
+      </div>
     </div>
   </main>
 </Layout>
