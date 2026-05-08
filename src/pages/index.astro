@@ -4,11 +4,31 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const services = [
-  { name: 'Web Development', color: 'blue' },
-  { name: 'Product Development', color: 'green' },
-  { name: 'PCB Development', color: 'purple' },
-  { name: 'Project Management', color: 'yellow' },
-  { name: 'Mechanical Drafting', color: 'red' },
+  { 
+    name: 'Web Development', 
+    color: 'blue', 
+    desc: 'High-performance digital platforms. From custom web applications to scalable business portals, I build secure, fast, and modern web infrastructure.' 
+  },
+  { 
+    name: 'Product Development', 
+    color: 'green', 
+    desc: 'Turn concepts into reality. I guide your product through the entire lifecycle, including prototyping, iterative design, and manufacturing readiness.' 
+  },
+  { 
+    name: 'PCB Development', 
+    color: 'purple', 
+    desc: 'Precision electronics design. Expert schematic capture and PCB layout, optimized for signal integrity, thermal management, and manufacturability.' 
+  },
+  { 
+    name: 'Project Management', 
+    color: 'yellow', 
+    desc: 'Engineering leadership for complex projects. I provide structured oversight, risk mitigation, and technical coordination to ensure your goals are met on time.' 
+  },
+  { 
+    name: 'Mechanical Drafting', 
+    color: 'red', 
+    desc: 'CAD-perfect documentation. Technical drafting and 3D modeling services with a focus on manufacturing tolerances, assemblies, and detailed technical specifications.' 
+  },
 ];
 
 let version = 'dev';
@@ -45,7 +65,7 @@ try {
               <div class={`w-6 h-6 bg-${service.color}-500 rounded-sm`}></div>
             </div>
             <h2 class="text-2xl font-bold mb-3">{service.name}</h2>
-            <p class="text-slate-400 mb-6 text-sm leading-relaxed">High-performance engineering tailored to your specific requirements.</p>
+            <p class="text-slate-400 mb-6 text-sm leading-relaxed">{service.desc}</p>
             <div class="text-xs font-bold tracking-widest uppercase text-slate-500 group-hover:text-white transition-colors">
               Explore →
             </div>
