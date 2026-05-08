@@ -1,0 +1,21 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="SmileTech Dental | Booking">
+  <main class="min-h-screen bg-slate-950 text-slate-100 p-8 md:p-16 max-w-2xl mx-auto">
+    <a href="/demo" class="text-blue-400 mb-8 inline-block">← Back to Portal</a>
+    <h1 class="text-3xl font-bold mb-8 text-green-400">Schedule Your Visit</h1>
+    <form class="space-y-6 bg-slate-900 p-8 rounded-xl border border-slate-700">
+      <div>
+        <label class="block mb-2 text-sm">Full Name</label>
+        <input type="text" class="w-full bg-slate-950 p-3 rounded border border-slate-700 focus:border-green-500 outline-none" />
+      </div>
+      <div>
+        <label class="block mb-2 text-sm">Preferred Date</label>
+        <input type="date" class="w-full bg-slate-950 p-3 rounded border border-slate-700 focus:border-green-500 outline-none" />
+      </div>
+      <button type="submit" class="w-full bg-green-600 py-3 rounded-lg font-bold">Request Appointment</button>
+    </form>
+  </main>
+</Layout>
