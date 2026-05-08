@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "git rev-parse --short HEAD > src/version.txt && astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
