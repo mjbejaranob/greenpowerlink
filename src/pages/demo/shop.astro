@@ -2,16 +2,16 @@
 import DentalLayout from '../../layouts/DentalLayout.astro';
 
 const products = [
-  { name: 'Sonic Pro Brush', price: '$129.00', desc: 'Advanced sonic technology.' },
-  { name: 'Whitening System', price: '$89.00', desc: 'Professional clinical results.' },
-  { name: 'Water Flosser', price: '$65.00', desc: 'Deep cleaning irrigation.' },
-  { name: 'Fluoride Rinse', price: '$15.00', desc: 'Enamel strengthening.' },
-  { name: 'Ortho Wax', price: '$8.00', desc: 'Comfort for braces.' },
-  { name: 'Interdental Brush', price: '$12.00', desc: 'Precise cleaning.' },
-  { name: 'Electric Flosser', price: '$45.00', desc: 'Battery operated ease.' },
-  { name: 'Tongue Scraper', price: '$10.00', desc: 'Fresh breath control.' },
-  { name: 'Night Guard', price: '$99.00', desc: 'Sleep comfort & protection.' },
-  { name: 'Travel Kit', price: '$25.00', desc: 'Complete on-the-go care.' },
+  { name: 'Sonic Pro Brush', price: '$129.00', desc: 'Advanced sonic technology.', img: 'https://picsum.photos/id/101/400/300' },
+  { name: 'Whitening System', price: '$89.00', desc: 'Professional clinical results.', img: 'https://picsum.photos/id/102/400/300' },
+  { name: 'Water Flosser', price: '$65.00', desc: 'Deep cleaning irrigation.', img: 'https://picsum.photos/id/103/400/300' },
+  { name: 'Fluoride Rinse', price: '$15.00', desc: 'Enamel strengthening.', img: 'https://picsum.photos/id/104/400/300' },
+  { name: 'Ortho Wax', price: '$8.00', desc: 'Comfort for braces.', img: 'https://picsum.photos/id/105/400/300' },
+  { name: 'Interdental Brush', price: '$12.00', desc: 'Precise cleaning.', img: 'https://picsum.photos/id/106/400/300' },
+  { name: 'Electric Flosser', price: '$45.00', desc: 'Battery operated ease.', img: 'https://picsum.photos/id/107/400/300' },
+  { name: 'Tongue Scraper', price: '$10.00', desc: 'Fresh breath control.', img: 'https://picsum.photos/id/108/400/300' },
+  { name: 'Night Guard', price: '$99.00', desc: 'Sleep comfort & protection.', img: 'https://picsum.photos/id/109/400/300' },
+  { name: 'Travel Kit', price: '$25.00', desc: 'Complete on-the-go care.', img: 'https://picsum.photos/id/110/400/300' },
 ];
 ---
 
@@ -25,8 +25,8 @@ const products = [
 
     <div class="grid md:grid-cols-3 gap-8">
       {products.map((p) => (
-        <div class="bg-white p-6 rounded-3xl border border-blue-100 shadow-sm">
-          <div class="w-full h-40 bg-blue-50 rounded-2xl mb-4 flex items-center justify-center text-blue-200">IMG</div>
+        <div class="bg-white p-6 rounded-3xl border border-blue-100 shadow-sm transition-transform hover:scale-105">
+          <img src={p.img} alt={p.name} class="w-full h-40 object-cover rounded-2xl mb-4" />
           <h2 class="font-bold text-lg text-slate-900">{p.name}</h2>
           <p class="text-slate-500 text-sm mb-4">{p.desc}</p>
           <div class="flex justify-between items-center">
