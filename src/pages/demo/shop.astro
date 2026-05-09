@@ -1,0 +1,33 @@
+---
+import DentalLayout from '../../layouts/DentalLayout.astro';
+
+const products = [
+  { name: 'Sonic Pro Toothbrush', price: '$129.00', desc: 'Advanced sonic technology.' },
+  { name: 'Whitening System', price: '$89.00', desc: 'Professional clinical results.' },
+  { name: 'Water Flosser', price: '$65.00', desc: 'Deep cleaning irrigation.' },
+];
+---
+
+<DentalLayout title="SmileTech Dental | Shop">
+  <main class="min-h-screen p-8 md:p-16 max-w-5xl mx-auto">
+    <div class="flex justify-between items-center mb-12">
+      <a href="/demo" class="text-blue-600 font-bold hover:underline">← Back</a>
+      <h1 class="text-3xl font-bold text-blue-900">Dental Store</h1>
+      <a href="/" class="text-teal-600 font-bold hover:underline">Home Site</a>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8">
+      {products.map((p) => (
+        <div class="bg-white p-6 rounded-3xl border border-blue-100 shadow-sm">
+          <div class="w-full h-40 bg-blue-50 rounded-2xl mb-4 flex items-center justify-center text-blue-200">IMG</div>
+          <h2 class="font-bold text-lg text-slate-900">{p.name}</h2>
+          <p class="text-slate-500 text-sm mb-4">{p.desc}</p>
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-blue-700">{p.price}</span>
+            <button onclick="alert('Payment Simulation: Processing Secure Checkout...')" class="px-4 py-2 bg-blue-600 text-white rounded-full text-sm hover:bg-blue-700 transition-colors">Add to Cart</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </main>
+</DentalLayout>
