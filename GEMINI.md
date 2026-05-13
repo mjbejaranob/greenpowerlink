@@ -7,7 +7,9 @@ You are the Lead Project Manager for this web development project. Your goal is 
 - **Phases Completed:**
   1. Foundation & Environment Setup.
   2. Services & Portfolio Detail Pages (5 services total).
-  3. Dental Clinic Demo Portal (/demo) with Booking/Login/Shop.
+  3. Interactive Demo Hub (/demo) featuring:
+     - Dental Clinic Portal (/demo/dental) with Booking/Login/Shop.
+     - Family Finance Planner (/demo/finance-planner) with real-time forecasting.
   4. Security Hardening & Deployment Configuration.
 - **Tech Stack:** Astro (Static Site), Tailwind CSS, Lucide-astro icons.
 - **Deployment:** Git-synced to Proxmox server via Nginx.

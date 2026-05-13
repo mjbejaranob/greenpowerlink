@@ -1,0 +1,70 @@
+---
+import DentalLayout from '../../../layouts/DentalLayout.astro';
+
+const featuredProducts = [
+  { name: 'Sonic Pro Brush' },
+  { name: 'Whitening Gel' },
+  { name: 'Water Flosser' },
+  { name: 'Ortho Wax' },
+  { name: 'Fluoride Rinse' }
+];
+---
+
+<DentalLayout title="SmileTech Dental">
+  <main class="min-h-screen p-8 md:p-16 max-w-5xl mx-auto">
+    <nav class="flex justify-between items-center mb-16 pb-8 border-b border-blue-200">
+      <div class="flex gap-4">
+        <a href="/" class="text-blue-600 font-bold hover:underline">← Home</a>
+        <a href="/demo" class="text-slate-500 font-bold hover:underline">Demos</a>
+      </div>
+      <h1 class="text-3xl font-bold text-blue-700">SmileTech Dental</h1>
+      <a href="/demo/dental/login" class="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors">Staff Login</a>
+    </nav>
+
+    <header class="text-center mb-20">
+      <h2 class="text-5xl font-extrabold mb-6 text-slate-900">Your Smile, Our Priority.</h2>
+      <a href="/demo/dental/booking" class="inline-block px-10 py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-full transition-all shadow-lg shadow-teal-200">Book Appointment</a>
+    </header>
+
+    <div class="grid md:grid-cols-2 gap-8 mb-20">
+      <div class="p-8 bg-white rounded-3xl shadow-sm border border-blue-100">
+        <h3 class="text-xl font-bold mb-4 text-blue-800">Clinical Services</h3>
+        <ul class="text-slate-600 space-y-3">
+          <li>✨ Advanced Whitening</li>
+          <li>✨ Preventive Care</li>
+          <li>✨ Digital Orthodontics</li>
+        </ul>
+      </div>
+      <div class="p-8 bg-white rounded-3xl shadow-sm border border-blue-100">
+        <h3 class="text-xl font-bold mb-4 text-blue-800">Patient Portal</h3>
+        <p class="text-slate-600 text-sm leading-relaxed">Access your records, review treatment plans, and manage your schedule effortlessly.</p>
+      </div>
+    </div>
+
+    <!-- Scrolling Product Banner -->
+    <section class="mt-20">
+      <div class="flex justify-between items-end mb-8">
+        <h3 class="text-2xl font-bold text-slate-900">Recommended Products</h3>
+        <a href="/demo/dental/shop" class="text-blue-600 font-bold hover:underline">View Full Shop →</a>
+      </div>
+      <div class="overflow-hidden bg-white py-8 rounded-3xl border border-blue-100">
+        <div class="flex animate-marquee gap-16 whitespace-nowrap px-8">
+          {[...featuredProducts, ...featuredProducts].map((p) => (
+            <span class="text-lg font-semibold text-blue-800 uppercase tracking-widest">{p.name}</span>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+</DentalLayout>
+
+<style>
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-marquee {
+    display: flex;
+    animation: marquee 20s linear infinite;
+  }
+</style>

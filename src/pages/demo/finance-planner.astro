@@ -1,0 +1,2085 @@
+---
+// Family Finance Planner - Standalone Demo Page
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Finance Planner | Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js" is:inline></script>
+<style is:global>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --ink: #0d1117; --ink2: #161b22; --ink3: #21262d; --ink4: #2d333b;
+  --line: rgba(255,255,255,0.08); --line2: rgba(255,255,255,0.04);
+  --sky: #58a6ff; --mint: #3fb950; --coral: #f85149; --amber: #d29922;
+  --lavender: #bc8cff; --cyan: #39c5cf;
+  --text: #e6edf3; --text2: #8b949e; --text3: #484f58;
+  --radius: 10px; --ff: 'Sora', sans-serif; --mono: 'JetBrains Mono', monospace;
+}
+html { background: var(--ink); color: var(--text); font-family: var(--ff); font-size: 14px; }
+body { display: flex; min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+#sidebar {
+  width: 235px; min-height: 100vh; background: var(--ink2);
+  border-right: 1px solid var(--line); position: fixed; top:0; left:0; bottom:0;
+  display: flex; flex-direction: column; z-index: 20; overflow-y: auto;
+}
+.brand { padding: 1.4rem 1.5rem; border-bottom: 1px solid var(--line); }
+.brand-name { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.02em; }
+.brand-sub { font-size: 0.66rem; color: var(--text2); margin-top: 0.2rem; font-family: var(--mono); }
+.nav-group { padding: 1rem 0.75rem 0.3rem; font-size: 0.6rem; color: var(--text3); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+.nav-item {
+  display: flex; align-items: center; gap: 0.6rem; margin: 0.08rem 0.5rem;
+  padding: 0.5rem 0.75rem; border-radius: 8px; cursor: pointer;
+  color: var(--text2); font-size: 0.81rem; font-weight: 500;
+  transition: all 0.15s; border: 1px solid transparent;
+}
+.nav-item:hover { color: var(--text); background: var(--ink3); }
+.nav-item.active { color: var(--sky); background: rgba(88,166,255,0.1); border-color: rgba(88,166,255,0.2); }
+.nav-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.5; flex-shrink: 0; }
+.nav-item.active .nav-dot { opacity: 1; }
+.sidebar-summary { margin-top: auto; border-top: 1px solid var(--line); padding: 0.9rem 1rem; }
+.ss-title { font-size: 0.6rem; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem; }
+.ss-row { display: flex; justify-content: space-between; align-items: center; padding: 0.28rem 0; font-size: 0.73rem; }
+.ss-label { color: var(--text2); }
+.ss-val { font-family: var(--mono); font-weight: 500; }
+.ss-val.pos { color: var(--mint); } .ss-val.neg { color: var(--coral); }
+
+/* ── MAIN ── */
+#main { margin-left: 235px; flex: 1; padding: 2rem 2.5rem 5rem; }
+.screen { display: none; animation: rise 0.22s ease; }
+.screen.active { display: block; }
+@keyframes rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── PAGE HEADER ── */
+.ph { margin-bottom: 1.75rem; display: flex; justify-content: space-between; align-items: flex-start; }
+.ph-left h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em; }
+.ph-left p { color: var(--text2); font-size: 0.81rem; margin-top: 0.3rem; }
+.ph-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+
+/* ── CARDS ── */
+.card { background: var(--ink2); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.25rem; }
+.card-title { font-size: 0.7rem; color: var(--text2); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1rem; }
+.grid { display: grid; gap: 1rem; }
+.g2 { grid-template-columns: 1fr 1fr; }
+.g3 { grid-template-columns: 1fr 1fr 1fr; }
+.g4 { grid-template-columns: repeat(4,1fr); }
+.g12 { grid-template-columns: 1fr 2fr; }
+.g21 { grid-template-columns: 2fr 1fr; }
+
+/* ── KPI ── */
+.kpi-grid { display: grid; gap: 0.75rem; margin-bottom: 1.25rem; }
+.kpi { background: var(--ink2); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.1rem; }
+.kpi-label { font-size: 0.67rem; color: var(--text2); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.4rem; }
+.kpi-val { font-size: 1.45rem; font-family: var(--mono); font-weight: 500; letter-spacing: -0.03em; }
+.kpi-sub { font-size: 0.69rem; color: var(--text2); margin-top: 0.2rem; }
+.kpi.sky { border-top: 2px solid var(--sky); }
+.kpi.mint { border-top: 2px solid var(--mint); }
+.kpi.coral { border-top: 2px solid var(--coral); }
+.kpi.amber { border-top: 2px solid var(--amber); }
+.kpi.lavender { border-top: 2px solid var(--lavender); }
+.kpi.cyan { border-top: 2px solid var(--cyan); }
+
+/* ── FORMS ── */
+.form-row { display: grid; gap: 0.7rem; margin-bottom: 0.7rem; }
+.fr2 { grid-template-columns: 1fr 1fr; }
+.fr3 { grid-template-columns: 1fr 1fr 1fr; }
+.fr4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.field { position: relative; }
+label { font-size: 0.73rem; color: var(--text2); font-weight: 500; display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.32rem; }
+.tip-btn { background: none; border: 1px solid var(--text3); color: var(--text3); border-radius: 50%; width: 14px; height: 14px; font-size: 0.6rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; font-family: var(--ff); }
+.tip-btn:hover { border-color: var(--sky); color: var(--sky); }
+.label-row{display:flex;align-items:center;gap:.3rem;margin-bottom:.3rem}
+.label-text{font-size:.73rem;color:var(--text2);font-weight:500}
+input[type=text], input[type=number], select, textarea {
+  width: 100%; background: var(--ink3); border: 1px solid var(--line);
+  border-radius: 7px; padding: 0.52rem 0.72rem; color: var(--text);
+  font-family: var(--ff); font-size: 0.84rem; outline: none; transition: border 0.15s;
+}
+input[type=text]:focus, input[type=number]:focus, select:focus { border-color: var(--sky); box-shadow: 0 0 0 3px rgba(88,166,255,0.1); }
+select option { background: var(--ink3); }
+input[type=number] { font-family: var(--mono); }
+
+/* ── BUTTONS ── */
+.btn { padding: 0.5rem 1rem; border-radius: 7px; border: 1px solid var(--line); background: var(--ink3); color: var(--text); cursor: pointer; font-family: var(--ff); font-size: 0.8rem; font-weight: 500; transition: all 0.15s; }
+.btn:hover { background: var(--ink4); border-color: rgba(255,255,255,0.15); }
+.btn-sky { background: var(--sky); border-color: var(--sky); color: #000; }
+.btn-sky:hover { background: #79bcff; }
+.btn-mint { background: rgba(63,185,80,0.15); border-color: var(--mint); color: var(--mint); }
+.btn-mint:hover { background: rgba(63,185,80,0.25); }
+.btn-coral { background: rgba(248,81,73,0.1); border-color: var(--coral); color: var(--coral); }
+.btn-coral:hover { background: rgba(248,81,73,0.2); }
+.btn-amber { background: rgba(210,153,34,0.1); border-color: var(--amber); color: var(--amber); }
+.btn-sm { padding: 0.32rem 0.7rem; font-size: 0.73rem; }
+
+/* ── ITEM LIST ── */
+.item-list { display: flex; flex-direction: column; gap: 0.45rem; }
+.item-row {
+  display: flex; align-items: center; gap: 0.7rem;
+  background: var(--ink3); border: 1px solid var(--line); border-radius: 8px; padding: 0.65rem 0.9rem;
+  transition: border-color 0.15s;
+}
+.item-row:hover { border-color: rgba(255,255,255,0.13); }
+.item-icon { font-size: 1.05rem; flex-shrink: 0; }
+.item-info { flex: 1; min-width: 0; }
+.item-name { font-size: 0.84rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-meta { font-size: 0.7rem; color: var(--text2); margin-top: 0.08rem; }
+.item-amount { font-family: var(--mono); font-size: 0.88rem; font-weight: 500; flex-shrink: 0; }
+.item-btns { display: flex; gap: 0.25rem; flex-shrink: 0; }
+.item-btn { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 0.85rem; padding: 0.2rem 0.4rem; border-radius: 4px; transition: all 0.15s; }
+.item-btn.edit:hover { color: var(--sky); background: rgba(88,166,255,0.1); }
+.item-btn.del:hover { color: var(--coral); background: rgba(248,81,73,0.1); }
+
+/* ── ADD/EDIT FORM ── */
+.add-form { background: var(--ink3); border: 1px dashed var(--line); border-radius: var(--radius); padding: 1.1rem; margin-top: 0.75rem; }
+.add-form-title { font-size: 0.72rem; color: var(--text2); font-weight: 600; margin-bottom: 0.85rem; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.5rem; }
+.edit-mode-badge { background: rgba(88,166,255,0.15); color: var(--sky); border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.65rem; }
+
+/* ── SLIDERS ── */
+.slider-block { margin-bottom: 1rem; }
+.slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem; }
+.slider-lbl { font-size: 0.79rem; color: var(--text); font-weight: 500; display: flex; align-items: center; gap: 0.4rem; }
+.slider-val { font-family: var(--mono); font-size: 0.84rem; color: var(--sky); font-weight: 500; min-width: 55px; text-align: right; }
+input[type=range] {
+  width: 100%; height: 4px; border-radius: 100px; outline: none; cursor: pointer;
+  -webkit-appearance: none; appearance: none; border: none;
+  background: linear-gradient(to right, var(--sky) var(--pct,50%), var(--ink4) var(--pct,50%));
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--sky); border: 2px solid var(--ink2); cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(88,166,255,0.2);
+}
+
+/* ── PROGRESS BAR ── */
+.pbar-track { height: 6px; background: var(--ink4); border-radius: 100px; overflow: hidden; }
+.pbar-fill { height: 100%; border-radius: 100px; transition: width 0.5s ease; }
+
+/* ── SCENARIO TABS ── */
+.stabs { display: flex; gap: 0.4rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.stab { padding: 0.4rem 0.95rem; border-radius: 100px; border: 1px solid var(--line); background: var(--ink2); color: var(--text2); cursor: pointer; font-size: 0.78rem; font-weight: 500; transition: all 0.15s; }
+.stab:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+.stab.active { background: var(--sky); border-color: var(--sky); color: #000; font-weight: 600; }
+
+/* ── BADGES ── */
+.badge { display: inline-block; padding: 0.12rem 0.45rem; border-radius: 4px; font-size: 0.66rem; font-weight: 600; }
+.badge-sky { background: rgba(88,166,255,0.15); color: var(--sky); }
+.badge-mint { background: rgba(63,185,80,0.15); color: var(--mint); }
+.badge-coral { background: rgba(248,81,73,0.15); color: var(--coral); }
+.badge-amber { background: rgba(210,153,34,0.15); color: var(--amber); }
+
+/* ── ALERTS ── */
+.alert { padding: 0.75rem 0.9rem; border-radius: 8px; font-size: 0.79rem; display: flex; gap: 0.55rem; margin-bottom: 0.55rem; line-height: 1.5; }
+.alert-mint { background: rgba(63,185,80,0.08); border-left: 3px solid var(--mint); }
+.alert-coral { background: rgba(248,81,73,0.08); border-left: 3px solid var(--coral); }
+.alert-amber { background: rgba(210,153,34,0.08); border-left: 3px solid var(--amber); }
+.alert-sky { background: rgba(88,166,255,0.08); border-left: 3px solid var(--sky); }
+
+/* ── TOOLTIP POPUP ── */
+#tooltip-overlay {
+  display: none; position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(3px);
+  align-items: center; justify-content: center;
+}
+#tooltip-overlay.show { display: flex; }
+.tooltip-box {
+  background: var(--ink2); border: 1px solid var(--line); border-radius: 14px;
+  padding: 1.75rem; max-width: 420px; width: 90%; position: relative;
+  animation: popIn 0.2s ease;
+}
+@keyframes popIn { from { opacity:0; transform:scale(0.94); } to { opacity:1; transform:scale(1); } }
+.tooltip-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+.tooltip-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+.tooltip-body { font-size: 0.82rem; color: var(--text2); line-height: 1.7; }
+.tooltip-body strong { color: var(--text); }
+.tooltip-body .example { background: var(--ink3); border-radius: 6px; padding: 0.6rem 0.8rem; margin-top: 0.6rem; font-family: var(--mono); font-size: 0.75rem; color: var(--sky); }
+.tooltip-close { position: absolute; top: 1rem; right: 1rem; background: none; border: 1px solid var(--line); color: var(--text2); border-radius: 6px; padding: 0.25rem 0.6rem; cursor: pointer; font-size: 0.75rem; }
+.tooltip-close:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+/* ── MODAL (EDIT) ── */
+#modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 900;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center;
+}
+#modal-overlay.show { display: flex; }
+.modal-box {
+  background: var(--ink2); border: 1px solid var(--line); border-radius: 14px;
+  padding: 1.75rem; max-width: 580px; width: 94%; position: relative;
+  animation: popIn 0.2s ease; max-height: 90vh; overflow-y: auto;
+}
+.modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+.modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: 1px solid var(--line); color: var(--text2); border-radius: 6px; padding: 0.25rem 0.6rem; cursor: pointer; font-size: 0.75rem; }
+.modal-close:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+/* ── TOAST ── */
+#toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--ink2); border: 1px solid var(--line); border-radius: 100px; padding: 0.6rem 1.2rem; font-size: 0.8rem; z-index: 2000; transition: transform 0.3s ease; white-space: nowrap; }
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── GUIDE PAGE ── */
+.guide-section { margin-bottom: 2rem; }
+.guide-section h2 { font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+.guide-step { display: flex; gap: 1rem; margin-bottom: 1rem; align-items: flex-start; }
+.guide-num { width: 28px; height: 28px; border-radius: 50%; background: rgba(88,166,255,0.15); color: var(--sky); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; margin-top: 0.1rem; }
+.guide-step-body h3 { font-size: 0.88rem; font-weight: 600; margin-bottom: 0.25rem; }
+.guide-step-body p { font-size: 0.8rem; color: var(--text2); line-height: 1.6; }
+.guide-tip { background: rgba(88,166,255,0.06); border: 1px solid rgba(88,166,255,0.15); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.79rem; color: var(--text2); line-height: 1.6; margin-bottom: 0.75rem; }
+.guide-tip strong { color: var(--sky); }
+.guide-faq-q { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; }
+.guide-faq-a { font-size: 0.8rem; color: var(--text2); line-height: 1.6; margin-bottom: 1rem; padding-left: 1rem; border-left: 2px solid var(--line); }
+
+/* ── CHART WRAP ── */
+.chart-wrap { position: relative; }
+
+/* ── UTILS ── */
+.flex { display: flex; } .jb { justify-content: space-between; } .ac { align-items: center; }
+.gap1 { gap: 1rem; } .gap05 { gap: 0.5rem; }
+.mt1 { margin-top: 1rem; } .mt05 { margin-top: 0.5rem; } .mb1 { margin-bottom: 1rem; } .mb2 { margin-bottom: 2rem; }
+.fw6 { font-weight: 600; } .mono { font-family: var(--mono); }
+.col2 { color: var(--text2); } .col-mint { color: var(--mint); } .col-coral { color: var(--coral); }
+.col-sky { color: var(--sky); } .col-amber { color: var(--amber); }
+.fs12 { font-size: 0.85rem; } .fs11 { font-size: 0.78rem; } .text-right { text-align: right; }
+.divider { height: 1px; background: var(--line); margin: 1rem 0; }
+.empty-state { text-align: center; padding: 1.75rem; color: var(--text3); font-size: 0.79rem; }
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN — Mobile First
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Mobile: base styles above already work for mobile (single column) */
+
+/* Tablet: 768px and up */
+@media (max-width: 1024px) {
+  #sidebar {
+    width: 200px;
+  }
+  #main {
+    margin-left: 200px;
+    padding: 1.5rem 1.5rem 4rem;
+  }
+  .g2, .g3, .g4, .g12, .g21, .g13 {
+    grid-template-columns: 1fr !important;
+  }
+  .fr2, .fr3, .fr4 {
+    grid-template-columns: 1fr !important;
+  }
+  .ph {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .ph-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+/* Mobile: 640px and down */
+@media (max-width: 640px) {
+  body {
+    flex-direction: column;
+  }
+  
+  #sidebar {
+    width: 100%;
+    min-height: auto;
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+  
+  #main {
+    margin-left: 0;
+    padding: 1rem 1rem 3rem;
+  }
+  
+  .brand {
+    padding: 1rem;
+  }
+  
+  .nav-group {
+    display: none; /* Hide section headers on mobile */
+  }
+  
+  .nav-item {
+    margin: 0.05rem 0.3rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+  }
+  
+  .sidebar-summary {
+    padding: 0.7rem 0.8rem;
+  }
+  
+  .ss-row {
+    font-size: 0.68rem;
+    padding: 0.2rem 0;
+  }
+  
+  .ph h1 {
+    font-size: 1.2rem;
+  }
+  
+  .ph p {
+    font-size: 0.75rem;
+  }
+  
+  .card {
+    padding: 1rem;
+  }
+  
+  .card-title {
+    font-size: 0.65rem;
+    margin-bottom: 0.7rem;
+  }
+  
+  .kpi {
+    padding: 0.7rem 0.85rem;
+  }
+  
+  .kpi-label {
+    font-size: 0.62rem;
+  }
+  
+  .kpi-val {
+    font-size: 1.2rem;
+  }
+  
+  .kpi-sub {
+    font-size: 0.64rem;
+  }
+  
+  .kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .item-row {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  
+  .item-info {
+    flex-basis: 100%;
+  }
+  
+  .item-amount {
+    font-size: 0.82rem;
+  }
+  
+  .btn {
+    padding: 0.42rem 0.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .btn-sm {
+    padding: 0.28rem 0.55rem;
+    font-size: 0.68rem;
+  }
+  
+  .modal-box {
+    width: 98%;
+    padding: 1.2rem;
+    max-height: 95vh;
+  }
+  
+  .tt-box {
+    width: 95%;
+    padding: 1.2rem;
+  }
+  
+  .alert {
+    padding: 0.6rem 0.7rem;
+    font-size: 0.74rem;
+  }
+  
+  .guide-step {
+    flex-direction: column;
+  }
+  
+  .guide-num {
+    width: 100%;
+    height: auto;
+    padding: 0.3rem;
+  }
+  
+  /* Pension screen mobile tweaks */
+  #pen-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  #pen-banner-icon {
+    font-size: 2rem;
+  }
+  
+  #pen-banner-amount {
+    width: 100%;
+    text-align: left;
+    margin-top: 0.5rem;
+  }
+  
+  /* Stack forecast sliders vertically on mobile */
+  .slider-block {
+    margin-bottom: 0.7rem;
+  }
+  
+  .slider-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+  }
+  
+  .slider-val {
+    min-width: auto;
+  }
+}
+
+/* Extra small mobile: 400px and down */
+@media (max-width: 400px) {
+  html {
+    font-size: 13px;
+  }
+  
+  #main {
+    padding: 0.8rem 0.8rem 2.5rem;
+  }
+  
+  .card {
+    padding: 0.8rem;
+  }
+  
+  .ph-actions {
+    flex-wrap: wrap;
+  }
+  
+  .stabs {
+    flex-direction: column;
+  }
+  
+  .stab {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* Tablet landscape and desktop: restore multi-column when space allows */
+@media (min-width: 1025px) {
+  /* Grid layouts work as defined in base CSS */
+}
+
+/* Print styles */
+@media print {
+  #sidebar {
+    display: none;
+  }
+  
+  #main {
+    margin-left: 0;
+  }
+  
+  .screen {
+    display: block !important;
+  }
+  
+  .ph-actions {
+    display: none;
+  }
+  
+  .chart-wrap {
+    page-break-inside: avoid;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ TOOLTIP OVERLAY ══════════ -->
+<div id="tooltip-overlay" onclick="closeTooltip(event)">
+  <div class="tooltip-box">
+    <button class="tooltip-close" onclick="closeTooltip()">✕ Close</button>
+    <div class="tooltip-icon" id="tt-icon"></div>
+    <div class="tooltip-title" id="tt-title"></div>
+    <div class="tooltip-body" id="tt-body"></div>
+  </div>
+</div>
+
+<!-- ══════════ EDIT MODAL ══════════ -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕ Close</button>
+    <div class="modal-title" id="modal-title">Edit Entry</div>
+    <div id="modal-body"></div>
+    <div class="flex gap05 mt1">
+      <button class="btn btn-sky" id="modal-save-btn" onclick="saveEdit()">Save Changes</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ TOAST ══════════ -->
+<div id="toast"></div>
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<nav id="sidebar">
+  <div class="brand">
+    <div class="brand-name">Family Finance</div>
+    <div class="brand-sub">// planner v3</div>
+  </div>
+
+  <div class="nav-group">Guide</div>
+  <div class="nav-item" onclick="go('guide',this)"><div class="nav-dot"></div>📖 How to Use</div>
+
+  <div class="nav-group">Data Entry</div>
+  <div class="nav-item active" onclick="go('home',this)"><div class="nav-dot"></div>Overview</div>
+  <div class="nav-item" onclick="go('income',this)"><div class="nav-dot"></div>Income</div>
+  <div class="nav-item" onclick="go('expenses',this)"><div class="nav-dot"></div>Expenses</div>
+  <div class="nav-item" onclick="go('assets',this)"><div class="nav-dot"></div>Assets & Investments</div>
+  <div class="nav-item" onclick="go('debts',this)"><div class="nav-dot"></div>Debts & Loans</div>
+
+  <div class="nav-group">Planning</div>
+  <div class="nav-item" onclick="go('savings',this)"><div class="nav-dot"></div>Savings Goals</div>
+  <div class="nav-item" onclick="go('plans',this)"><div class="nav-dot"></div>Future Plans</div>
+  <div class="nav-item" onclick="go('forecast',this)"><div class="nav-dot"></div>Forecast & Scenarios</div>
+  <div class="nav-item" onclick="go('retirement',this)"><div class="nav-dot"></div>Retirement</div>
+  <div class="nav-item" onclick="go('pension',this)"><div class="nav-dot"></div>🏛️ Age Pension</div>
+
+  <div class="sidebar-summary">
+    <div class="ss-title">Live Summary</div>
+    <div class="ss-row"><span class="ss-label">Monthly Income</span><span class="ss-val pos" id="ss-income">$0</span></div>
+    <div class="ss-row"><span class="ss-label">Monthly Expenses</span><span class="ss-val neg" id="ss-expenses">$0</span></div>
+    <div class="ss-row"><span class="ss-label">Net Cashflow</span><span class="ss-val" id="ss-cashflow">$0</span></div>
+    <div class="ss-row"><span class="ss-label">Net Worth</span><span class="ss-val pos" id="ss-networth">$0</span></div>
+  </div>
+  
+  <div class="nav-group" style="margin-top:auto; padding-bottom:1rem; border-top:1px solid var(--line)">
+    <a href="/demo" style="text-decoration:none; color:var(--text2); display:flex; align-items:center; gap:0.6rem; padding:0.5rem 0.75rem; font-size:0.81rem;">
+      ← Back to Demos
+    </a>
+  </div>
+</nav>
+
+<!-- ══════════ MAIN ══════════ -->
+<main id="main">
+
+<!-- ── GUIDE ── -->
+<div id="screen-guide" class="screen">
+  <div class="ph"><div class="ph-left"><h1>📖 How to Use This Planner</h1><p>Step-by-step guide to getting the most out of your family finance dashboard.</p></div></div>
+
+  <div class="grid g2 mb2">
+    <div class="card">
+      <div class="guide-section">
+        <h2>🚀 Getting Started</h2>
+        <div class="guide-step"><div class="guide-num">1</div><div class="guide-step-body"><h3>Enter your income</h3><p>Go to <strong>Income</strong> and add every source of money coming in — salaries, rental income, dividends. Use <em>after-tax amounts</em> for the most accurate picture.</p></div></div>
+        <div class="guide-step"><div class="guide-num">2</div><div class="guide-step-body"><h3>Log your expenses</h3><p>Go to <strong>Expenses</strong> and add all monthly costs. Break them into categories — housing, food, transport, school fees, etc. Include loan repayments here too if they're regular outgoings.</p></div></div>
+        <div class="guide-step"><div class="guide-num">3</div><div class="guide-step-body"><h3>Add assets & debts</h3><p>In <strong>Assets</strong>, enter everything you own with its current value. In <strong>Debts</strong>, add outstanding balances with interest rates. This calculates your net worth.</p></div></div>
+        <div class="guide-step"><div class="guide-num">4</div><div class="guide-step-body"><h3>Set goals & plans</h3><p>Use <strong>Savings Goals</strong> for targets (emergency fund, holiday). Use <strong>Future Plans</strong> for upcoming large purchases (car, renovation, school fees) so they appear in your forecast.</p></div></div>
+        <div class="guide-step"><div class="guide-num">5</div><div class="guide-step-body"><h3>Explore your forecast</h3><p>Go to <strong>Forecast</strong> and move the sliders to model different scenarios. Try Conservative, Moderate, and Optimistic to understand your range of outcomes.</p></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="guide-section">
+        <h2>💡 Tips for Accuracy</h2>
+        <div class="guide-tip"><strong>Use monthly amounts.</strong> All income and expense fields expect a monthly dollar figure. If you're paid fortnightly, multiply by 26 and divide by 12.</div>
+        <div class="guide-tip"><strong>After-tax income is best.</strong> Enter what actually lands in your bank. This gives an accurate cashflow picture. You can note "before tax" in the Notes field if you prefer.</div>
+        <div class="guide-tip"><strong>Super contributions in Assets.</strong> Add each person's superannuation as a separate asset with the "Superannuation" type. Enter the monthly employer contribution in the Contribution field.</div>
+        <div class="guide-tip"><strong>Investment loan repayments.</strong> If you have an investment property loan, the repayment should go in <strong>Debts</strong> (not Expenses), so it flows correctly into the cashflow calculation.</div>
+        <div class="guide-tip"><strong>Hover the ⓘ buttons.</strong> Every input field has a help button that explains exactly what to enter and gives an example.</div>
+        <div class="guide-tip"><strong>Save to a specific location.</strong> Chrome, Edge, and Opera let you choose exactly where to save your plan file. Safari/Firefox save to Downloads. Use <strong>Save Plan</strong> on Overview.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb2">
+    <div class="card-title">Key Concepts Explained</div>
+    <div class="grid g2">
+      <div>
+        <div class="guide-faq-q">💳 What's the difference between Fixed, Variable, and Discretionary expenses?</div>
+        <div class="guide-faq-a"><strong>Fixed:</strong> Same every month (mortgage, school fees, insurance). <strong>Variable:</strong> Changes but is necessary (groceries, petrol, utilities). <strong>Discretionary:</strong> Optional spending you could cut if needed (dining out, streaming services, hobbies).</div>
+        <div class="guide-faq-q">📈 What annual return should I use for investments?</div>
+        <div class="guide-faq-a">Australian shares historically average 7–10% p.a. Balanced superannuation funds average 6–8%. Property has averaged 5–7% in most Australian capital cities. Use the lower end for conservative planning.</div>
+        <div class="guide-faq-q">🌅 What income growth rate should I enter?</div>
+        <div class="guide-faq-a">Australia's average wage growth is around 3–4% per year. Use 2–3% for conservative, 4–5% for optimistic. If you expect a promotion or career change, you can model that separately in Future Plans.</div>
+      </div>
+      <div>
+        <div class="guide-faq-q">🏠 Should I include my primary home as an asset?</div>
+        <div class="guide-faq-a">Yes — it contributes to your net worth. Set the type to "Property (Primary)" and enter its estimated current market value. The mortgage goes in Debts. Note that you can't access this equity easily, so the planner treats it separately in the retirement simulation.</div>
+        <div class="guide-faq-q">🏦 How does the Debt-to-Income ratio work?</div>
+        <div class="guide-faq-a">DTI = total monthly loan repayments ÷ gross monthly income. Banks generally prefer this below 35–40%. Above 40% may limit your ability to borrow. The planner highlights this in red if it exceeds 35%.</div>
+        <div class="guide-faq-q">🔮 How does the Forecast work?</div>
+        <div class="guide-faq-a">It projects your net worth year by year using your current data as a starting point, then applies the growth rates and inflation from the sliders. Property grows at property rate, investments at investment rate, income at income rate, etc. Future Plans reduce your savings in the year they occur.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Save & Load Your Plan</div>
+    <div class="grid g3">
+      <div>
+        <h3 class="fs12 fw6 mb1">💾 Saving to a Specific Location</h3>
+        <p class="col2 fs11" style="line-height:1.7">
+          Click <strong>Save Plan</strong> on the Overview page. In modern browsers (Chrome, Edge, Opera), you'll see a file picker where you can:
+          <br>• Choose exactly where to save (e.g. next to this HTML file)
+          <br>• Name your file (e.g. <code style="color:var(--sky)">family-finance-jan-2026.json</code>)
+          <br>• Overwrite previous versions
+          <br><br>Safari and Firefox: Files save to your Downloads folder by default.
+        </p>
+      </div>
+      <div>
+        <h3 class="fs12 fw6 mb1">📂 Loading from Any Location</h3>
+        <p class="col2 fs11" style="line-height:1.7">
+          Click <strong>Load Plan</strong> on the Overview page. Browse to your saved <code style="color:var(--sky)">.json</code> file anywhere on your computer. All your data — income, expenses, assets, debts, goals, plans, and pension details — will be restored exactly as you saved it.
+        </p>
+      </div>
+      <div>
+        <h3 class="fs12 fw6 mb1">🔄 Best Practice: Monthly Updates</h3>
+        <p class="col2 fs11" style="line-height:1.7">
+          Each month: Load your plan → Update changed figures (pay rise, new expenses, asset values, super balance) → Save with a new date in the filename. This creates a monthly snapshot history and keeps your forecast accurate. Recommended naming: <code style="color:var(--sky)">finance-2026-01.json</code>, <code style="color:var(--sky)">finance-2026-02.json</code>, etc.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── OVERVIEW ── -->
+<div id="screen-home" class="screen active">
+  <div class="ph">
+    <div class="ph-left"><h1>Overview</h1><p>Your complete family financial picture at a glance.</p></div>
+    <div class="ph-actions">
+      <button class="btn btn-mint btn-sm" onclick="loadDemo()">⚡ Demo Data</button>
+      <button class="btn btn-sky btn-sm" onclick="savePlan()">💾 Save Plan</button>
+      <input type="file" id="load-file" accept=".json" style="display:none" onchange="loadPlan(this)">
+      <button class="btn btn-sm" onclick="loadPlan()">📂 Load Plan</button>
+    </div>
+  </div>
+
+  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi sky"><div class="kpi-label">Monthly Income</div><div class="kpi-val" id="ov-income">$0</div><div class="kpi-sub">All sources combined</div></div>
+    <div class="kpi coral"><div class="kpi-label">Monthly Expenses</div><div class="kpi-val" id="ov-expenses">$0</div><div class="kpi-sub">Including repayments</div></div>
+    <div class="kpi mint"><div class="kpi-label">Net Cashflow</div><div class="kpi-val" id="ov-cashflow">$0</div><div class="kpi-sub" id="ov-savings-rate">Savings rate: 0%</div></div>
+    <div class="kpi lavender"><div class="kpi-label">Net Worth</div><div class="kpi-val" id="ov-networth">$0</div><div class="kpi-sub">Assets − Debts</div></div>
+  </div>
+
+  <div class="grid g2 mb1">
+    <div class="card"><div class="card-title">Income vs Expenses</div><div class="chart-wrap" style="height:200px"><canvas id="ov-chart-ie"></canvas></div></div>
+    <div class="card"><div class="card-title">Net Worth Breakdown</div><div class="chart-wrap" style="height:200px"><canvas id="ov-chart-nw"></canvas></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Setup Checklist</div>
+    <div id="checklist"></div>
+  </div>
+</div>
+
+<!-- ── INCOME ── -->
+<div id="screen-income" class="screen">
+  <div class="ph"><div class="ph-left"><h1>Income</h1><p>Add all sources of household income.</p></div></div>
+  <div class="card mb1">
+    <div class="flex jb ac mb1">
+      <div class="card-title" style="margin:0">Income Sources</div>
+      <button class="btn btn-mint btn-sm" onclick="toggleAdd('income-add')">+ Add Income</button>
+    </div>
+    <div id="income-list" class="item-list"></div>
+    <div id="income-add" class="add-form" style="display:none">
+      <div class="add-form-title">NEW INCOME SOURCE</div>
+      <div class="form-row fr3">
+        <div class="field"><div class="label-row"><span class="label-text">Name / Person</span><button class="tip-btn" type="button" onclick="tip('inc-name')" style="flex-shrink:0">?</button></div><input type="text" id="inc-name" placeholder="e.g. Alex — Salary"></div>
+        <div class="field"><div class="label-row"><span class="label-text">Monthly Amount ($)</span><button class="tip-btn" type="button" onclick="tip('inc-amount')" style="flex-shrink:0">?</button></div><input type="number" id="inc-amount" placeholder="0" min="0"></div>
+        <div class="field"><label>Type</label>
+          <select id="inc-type">
+            <option value="salary">💼 Salary</option><option value="bonus">🎯 Bonus / Commission</option>
+            <option value="freelance">💻 Freelance</option><option value="rental">🏠 Rental Income</option>
+            <option value="dividends">📈 Dividends</option><option value="pension">🌅 Pension</option><option value="other">📦 Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row fr2">
+        <div class="field"><div class="label-row"><span class="label-text">Annual Growth Rate (%)</span><button class="tip-btn" type="button" onclick="tip('inc-growth')" style="flex-shrink:0">?</button></div><input type="number" id="inc-growth" value="3" min="0" max="20" step="0.5"></div>
+        <div class="field"><label>Note (optional)</label><input type="text" id="inc-note" placeholder="e.g. after tax, before super"></div>
+      </div>
+      <div class="flex gap05 mt05">
+        <button type="button" class="btn btn-sky" onclick="addIncome()">Save Income</button>
+        <button class="btn" onclick="toggleAdd('income-add')">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <div class="grid g2">
+    <div class="kpi sky"><div class="kpi-label">Total Monthly</div><div class="kpi-val" id="inc-total-m">$0</div><div class="kpi-sub" id="inc-total-a">$0 / year</div></div>
+    <div class="kpi mint"><div class="kpi-label">Passive Income</div><div class="kpi-val" id="inc-passive">$0</div><div class="kpi-sub">rental + dividends + pension</div></div>
+  </div>
+</div>
+
+<!-- ── EXPENSES ── -->
+<div id="screen-expenses" class="screen">
+  <div class="ph"><div class="ph-left"><h1>Expenses</h1><p>Track all monthly household costs.</p></div></div>
+  <div class="card mb1">
+    <div class="flex jb ac mb1">
+      <div class="card-title" style="margin:0">Monthly Expenses</div>
+      <div class="flex gap05">
+        <select id="exp-sort" onchange="renderExpenses()">
+          <option value="name">Sort by Name</option>
+          <option value="amount">Sort by Amount</option>
+        </select>
+        <select id="exp-filter" onchange="renderExpenses()">
+          <option value="all">All Categories</option>
+          <option value="housing">🏠 Housing</option><option value="food">🍽️ Food</option>
+          <option value="transport">🚗 Transport</option><option value="utilities">⚡ Utilities</option>
+          <option value="health">🏥 Health</option><option value="education">🎓 Education</option>
+          <option value="subscriptions">📱 Subscriptions</option><option value="other">📦 Other</option>
+        </select>
+      </div>
+      <button class="btn btn-mint btn-sm" onclick="toggleAdd('exp-add')">+ Add Expense</button>
+    </div>
+    <div class="chart-wrap" style="height:200px; margin-bottom:1rem;">
+      <canvas id="exp-chart-pie"></canvas>
+    </div>
+    <div id="exp-list" class="item-list"></div>
+    <div id="exp-add" class="add-form" style="display:none">
+      <div class="add-form-title">NEW EXPENSE</div>
+      <div class="form-row fr3">
+        <div class="field"><div class="label-row"><span class="label-text">Name</span><button class="tip-btn" type="button" onclick="tip('exp-name')" style="flex-shrink:0">?</button></div><input type="text" id="exp-name" placeholder="e.g. Grocery shopping"></div>
+        <div class="field"><div class="label-row"><span class="label-text">Monthly Amount ($)</span><button class="tip-btn" type="button" onclick="tip('exp-amount')" style="flex-shrink:0">?</button></div><input type="number" id="exp-amount" placeholder="0" min="0"></div>
+        <div class="field"><label>Category</label>
+          <select id="exp-cat">
+            <option value="housing">🏠 Housing</option><option value="food">🍽️ Food & Groceries</option>
+            <option value="transport">🚗 Transport</option><option value="utilities">⚡ Utilities</option>
+            <option value="health">🏥 Health</option><option value="education">🎓 Education</option>
+            <option value="childcare">👶 Childcare</option><option value="entertainment">🎬 Entertainment</option>
+            <option value="clothing">👕 Clothing</option><option value="insurance">🛡️ Insurance</option>
+            <option value="subscriptions">📱 Subscriptions</option><option value="other">📦 Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row fr2">
+        <div class="field"><div class="label-row"><span class="label-text">Type</span><button class="tip-btn" type="button" onclick="tip('exp-type')" style="flex-shrink:0">?</button></div>
+          <select id="exp-type">
+            <option value="fixed">Fixed (same each month)</option>
+            <option value="variable">Variable (changes monthly)</option>
+            <option value="discretionary">Discretionary (optional)</option>
+          </select>
+        </div>
+        <div class="field"><div class="label-row"><span class="label-text">Annual Increase (%)</span><button class="tip-btn" type="button" onclick="tip('exp-growth')" style="flex-shrink:0">?</button></div><input type="number" id="exp-growth" value="2.5" min="0" max="20" step="0.5"></div>
+      </div>
+      <div class="flex gap05 mt05">
+        <button type="button" class="btn btn-sky" onclick="addExpense()">Save Expense</button>
+        <button class="btn" onclick="toggleAdd('exp-add')">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <div class="grid g3">
+    <div class="kpi coral"><div class="kpi-label">Total Monthly</div><div class="kpi-val" id="exp-total-m">$0</div><div class="kpi-sub" id="exp-total-a">$0 / year</div></div>
+    <div class="kpi amber"><div class="kpi-label">Fixed Costs</div><div class="kpi-val" id="exp-fixed">$0</div><div class="kpi-sub">per month</div></div>
+    <div class="kpi sky"><div class="kpi-label">Variable / Disc.</div><div class="kpi-val" id="exp-variable">$0</div><div class="kpi-sub">per month</div></div>
+  </div>
+</div>
+
+<!-- ── ASSETS ── -->
+<div id="screen-assets" class="screen">
+  <div class="ph"><div class="ph-left"><h1>Assets & Investments</h1><p>Everything you own — property, super, shares, cash.</p></div></div>
+  <div class="card mb1">
+    <div class="flex jb ac mb1">
+      <div class="card-title" style="margin:0">Assets</div>
+      <button class="btn btn-mint btn-sm" onclick="toggleAdd('asset-add')">+ Add Asset</button>
+    </div>
+    <div id="asset-list" class="item-list"></div>
+    <div id="asset-add" class="add-form" style="display:none">
+      <div class="add-form-title">NEW ASSET</div>
+      <div class="form-row fr3">
+        <div class="field"><div class="label-row"><span class="label-text">Name</span><button class="tip-btn" type="button" onclick="tip('ast-name')" style="flex-shrink:0">?</button></div><input type="text" id="ast-name" placeholder="e.g. Family Home"></div>
+        <div class="field"><div class="label-row"><span class="label-text">Current Value ($)</span><button class="tip-btn" type="button" onclick="tip('ast-value')" style="flex-shrink:0">?</button></div><input type="number" id="ast-value" placeholder="0" min="0"></div>
+        <div class="field"><label>Type</label>
+          <select id="ast-type">
+            <option value="property">🏠 Property (Primary)</option><option value="investment_prop">🏢 Investment Property</option>
+            <option value="super">🌅 Superannuation</option><option value="etf">📊 ETF / Index Fund</option>
+            <option value="shares">📈 Shares</option><option value="savings">💰 Savings / Cash</option>
+            <option value="crypto">🔐 Crypto</option><option value="other">📦 Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row fr3">
+        <div class="field"><div class="label-row"><span class="label-text">Expected Return (% p.a.)</span><button class="tip-btn" type="button" onclick="tip('ast-return')" style="flex-shrink:0">?</button></div><input type="number" id="ast-return" value="7" min="0" max="20" step="0.5"></div>
+        <div class="field"><div class="label-row"><span class="label-text">Monthly Contribution ($)</span><button class="tip-btn" type="button" onclick="tip('ast-contrib')" style="flex-shrink:0">?</button></div><input type="number" id="ast-contrib" placeholder="0" min="0"></div>
+        <div class="field"><label>Note (optional)</label><input type="text" id="ast-note" placeholder="e.g. AMP Balanced fund"></div>
+      </div>
+      <div class="flex gap05 mt05">
+        <button type="button" class="btn btn-sky" onclick="addAsset()">Save Asset</button>
+        <button class="btn" onclick="toggleAdd('asset-add')">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <div class="grid g3">
+    <div class="kpi lavender"><div class="kpi-label">Total Assets</div><div class="kpi-val" id="ast-total">$0</div><div class="kpi-sub">current value</div></div>
+    <div class="kpi mint"><div class="kpi-label">Monthly Contributions</div><div class="kpi-val" id="ast-contrib-total">$0</div><div class="kpi-sub">to all investments</div></div>
+    <div class="kpi sky"><div class="kpi-label">Weighted Avg. Return</div><div class="kpi-val" id="ast-avg-return">0%</div><div class="kpi-sub">across all assets</div></div>
+  </div>
+</div>
+
+<!-- ── DEBTS ── -->
+<div id="screen-debts" class="screen">
+  <div class="ph"><div class="ph-left"><h1>Debts & Loans</h1><p>All liabilities — mortgage, car, credit cards, HECS.</p></div></div>
+  <div class="card mb1">
+    <div class="flex jb ac mb1">
+      <div class="card-title" style="margin:0">Liabilities</div>
+      <button class="btn btn-mint btn-sm" onclick="toggleAdd('debt-add')">+ Add Debt</button>
+    </div>
+    <div id="debt-list" class="item-list"></div>
+    <div id="debt-add" class="add-form" style="display:none">
+      <div class="add-form-title">NEW DEBT / LOAN</div>
+      <div class="form-row fr3">
+        <div class="field"><div class="label-row"><span class="label-text">Name</span><button class="tip-btn" type="button" onclick="tip('dbt-name')" style="flex-shrink:0">?</button></div><input type="text" id="dbt-name" placeholder="e.g. Home Mortgage"></div>
+        <div class="field"><div class="label-row"><span class="label-text">Outstanding Balance ($)</span><button class="tip-btn" type="button" onclick="tip('dbt-balance')" style="flex-shrink:0">?</button></div><input type="number" id="dbt-balance" placeholder="0" min="0"></div>
+        <div class="field"><label>Type</label>
+          <select id="dbt-type">
+            <option value="mortgage">🏠 Mortgage</option><option value="investment_loan">🏢 Investment Loan</option>
+            <option value="car">🚗 Car Loan</option><option value="personal">💳 Personal Loan</option>
+            <option value="credit_card">💳 Credit Card</option><option value="hecs">🎓 HECS / Student Loan</option>
+            <option value="other">📦 Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row fr3">
+        <div class="field"><div class="label-row"><span class="label-text">Interest Rate (% p.a.)</span><button class="tip-btn" type="button" onclick="tip('dbt-rate')" style="flex-shrink:0">?</button></div><input type="number" id="dbt-rate" placeholder="6.0" min="0" max="30" step="0.1"></div>
+        <div class="field"><div class="label-row"><span class="label-text">Monthly Repayment ($)</span><button class="tip-btn" type="button" onclick="tip('dbt-repayment')" style="flex-shrink:0">?</button></div><input type="number" id="dbt-repayment" placeholder="0" min="0"></div>
+        <div class="field"><div class="label-row"><span class="label-text">Years Remaining</span><button class="tip-btn" type="button" onclick="tip('dbt-years')" style="flex-shrink:0">?</button></div><input type="number" id="dbt-years" placeholder="25" min="0" max="40"></div>
+      </div>
+      <div class="flex gap05 mt05">
+        <button type="button" class="btn btn-sky" onclick="addDebt()">Save Debt</button>
+        <button class="btn" onclick="toggleAdd('debt-add')">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <div class="grid g3">
+    <div class="kpi coral"><div class="kpi-label">Total Debt</div><div class="kpi-val" id="dbt-total">$0</div><div class="kpi-sub">outstanding balance</div></div>
+    <div class="kpi amber"><div class="kpi-label">Monthly Repayments</div><div class="kpi-val" id="dbt-repay-total">$0</div><div class="kpi-sub">all loans combined</div></div>
+    <div class="kpi sky"><div class="kpi-label">Debt-to-Income</div><div class="kpi-val" id="dbt-dti">0%</div><div class="kpi-sub">of gross monthly income</div></div>
+  </div>
+</div>
+
+<!-- ── SAVINGS GOALS ── -->
+<div id="screen-savings" class="screen">
+  <div class="ph"><div class="ph-left"><h1>Savings Goals</h1><p>Set targets and track progress.</p></div></div>
+  <div class="card mb1">
+    <div class="flex jb ac mb1">
+      <div class="card-title" style="margin:0">Goals</div>
+      <button class="btn btn-mint btn-sm" onclick="toggleAdd('goal-add')">+ Add Goal</button>
+    </div>
+    <div id="goal-list"></div>
+    <div id="goal-add" class="add-form" style="display:none">
+      <div class="add-form-title">NEW SAVINGS GOAL</div>
+      <div class="form-row fr3">
+        <div class="field"><div class="label-row"><span class="label-text">Goal Name</span><button class="tip-btn" type="button" onclick="tip('gl-name')" style="flex-shrink:0">?</button></div><input type="text" id="gl-name" placeholder="e.g. Emergency Fund"></div>
+        <div class="field"><div class="label-row"><span class="label-text">Target Amount ($)</span><button class="tip-btn" type="button" onclick="tip('gl-target')" style="flex-shrink:0">?</button></div><input type="number" id="gl-target" placeholder="0" min="0"></div>
+        <div class="field"><div class="label-row"><span class="label-text">Already Saved ($)</span><button class="tip-btn" type="button" onclick="tip('gl-saved')" style="flex-shrink:0">?</button></div><input type="number" id="gl-saved" placeholder="0" min="0"></div>
+      </div>
+      <div class="form-row fr2">
+        <div class="field"><label>Target Date</label><input type="date" id="gl-date"></div>
+        <div class="field"><label>Priority</label>
+          <select id="gl-priority"><option value="high">🔴 High</option><option value="medium">🟡 Medium</option><option value="low">🟢 Low</option></select>
+        </div>
+      </div>
+      <div class="flex gap05 mt05">
+        <button type="button" class="btn btn-sky" onclick="addGoal()">Save Goal</button>
+        <button class="btn" onclick="toggleAdd('goal-add')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FUTURE PLANS ── -->
+<div id="screen-plans" class="screen">
+  <div class="ph"><div class="ph-left"><h1>Future Plans</h1><p>Upcoming large expenses or investments that affect your forecast.</p></div></div>
+  <div class="card mb1">
+    <div class="flex jb ac mb1">
+      <div class="card-title" style="margin:0">Planned Events</div>
+      <button class="btn btn-mint btn-sm" onclick="toggleAdd('plan-add')">+ Add Plan</button>
+    </div>
+    <div id="plan-list" class="item-list"></div>
+    <div id="plan-add" class="add-form" style="display:none">
+      <div class="add-form-title">NEW FUTURE PLAN</div>
+      <div class="form-row fr3">
+        <div class="field"><div class="label-row"><span class="label-text">Plan Name</span><button class="tip-btn" type="button" onclick="tip('pl-name')" style="flex-shrink:0">?</button></div><input type="text" id="pl-name" placeholder="e.g. Kitchen Renovation"></div>
+        <div class="field"><div class="label-row"><span class="label-text">Estimated Cost ($)</span><button class="tip-btn" type="button" onclick="tip('pl-cost')" style="flex-shrink:0">?</button></div><input type="number" id="pl-cost" placeholder="0" min="0"></div>
+        <div class="field"><label>Type</label>
+          <select id="pl-type">
+            <option value="purchase">🛍️ Purchase</option><option value="renovation">🔨 Renovation</option>
+            <option value="education">🎓 Education Fees</option><option value="travel">✈️ Travel</option>
+            <option value="investment">📈 Investment</option><option value="family">👶 Family Event</option>
+            <option value="business">💼 Business</option><option value="other">📦 Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row fr3">
+        <div class="field"><div class="label-row"><span class="label-text">Year Planned</span><button class="tip-btn" type="button" onclick="tip('pl-year')" style="flex-shrink:0">?</button></div><input type="number" id="pl-year" placeholder="2027" min="2025" max="2060"></div>
+        <div class="field"><div class="label-row"><span class="label-text">Funding Strategy</span><button class="tip-btn" type="button" onclick="tip('pl-funding')" style="flex-shrink:0">?</button></div>
+          <select id="pl-funding"><option value="savings">From savings</option><option value="loan">New loan</option><option value="cashflow">From monthly cashflow</option><option value="mixed">Mixed / TBD</option></select>
+        </div>
+        <div class="field"><label>Note</label><input type="text" id="pl-note" placeholder="Optional details"></div>
+      </div>
+      <div class="flex gap05 mt05">
+        <button type="button" class="btn btn-sky" onclick="addPlan()">Save Plan</button>
+        <button class="btn" onclick="toggleAdd('plan-add')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FORECAST ── -->
+<div id="screen-forecast" class="screen">
+  <div class="ph"><div class="ph-left"><h1>Forecast & Scenarios</h1><p>Adjust sliders to model different futures. All calculations use your entered data.</p></div></div>
+
+  <div class="grid g12 mb1">
+    <div class="card">
+      <div class="card-title">Scenario Parameters</div>
+      <div class="stabs">
+        <div class="stab active" onclick="setPreset('moderate',this)">Moderate</div>
+        <div class="stab" onclick="setPreset('conservative',this)">Conservative</div>
+        <div class="stab" onclick="setPreset('optimistic',this)">Optimistic</div>
+      </div>
+      <div class="slider-block"><div class="slider-header"><span class="slider-lbl">Income growth / year <button class="tip-btn" type="button" onclick="tip('sl-incgrow')">?</button></span><span class="slider-val" id="sv-incgrow">3.0%</span></div><input type="range" id="sl-incgrow" min="0" max="10" value="3" step="0.5" oninput="sliderChange(this,'incgrow','%')"></div>
+      <div class="slider-block"><div class="slider-header"><span class="slider-lbl">Expense inflation / year <button class="tip-btn" type="button" onclick="tip('sl-expinfl')">?</button></span><span class="slider-val" id="sv-expinfl">2.5%</span></div><input type="range" id="sl-expinfl" min="0" max="8" value="2.5" step="0.5" oninput="sliderChange(this,'expinfl','%')"></div>
+      <div class="slider-block"><div class="slider-header"><span class="slider-lbl">Investment return / year <button class="tip-btn" type="button" onclick="tip('sl-invret')">?</button></span><span class="slider-val" id="sv-invret">7.0%</span></div><input type="range" id="sl-invret" min="1" max="15" value="7" step="0.5" oninput="sliderChange(this,'invret','%')"></div>
+      <div class="slider-block"><div class="slider-header"><span class="slider-lbl">Property growth / year <button class="tip-btn" type="button" onclick="tip('sl-propgrow')">?</button></span><span class="slider-val" id="sv-propgrow">5.0%</span></div><input type="range" id="sl-propgrow" min="0" max="12" value="5" step="0.5" oninput="sliderChange(this,'propgrow','%')"></div>
+      <div class="slider-block"><div class="slider-header"><span class="slider-lbl">Extra monthly savings <button class="tip-btn" type="button" onclick="tip('sl-extrasav')">?</button></span><span class="slider-val" id="sv-extrasav">$0</span></div><input type="range" id="sl-extrasav" min="0" max="3000" value="0" step="100" oninput="sliderChange(this,'extrasav','$')"></div>
+      <div class="slider-block"><div class="slider-header"><span class="slider-lbl">Forecast horizon (years) <button class="tip-btn" type="button" onclick="tip('sl-horizon')">?</button></span><span class="slider-val" id="sv-horizon">20 yrs</span></div><input type="range" id="sl-horizon" min="5" max="40" value="20" step="1" oninput="sliderChange(this,'horizon',' yrs')"></div>
+    </div>
+    <div>
+      <div class="card mb1"><div class="card-title">Net Worth Projection</div><div class="chart-wrap" style="height:220px"><canvas id="fc-nw-chart"></canvas></div></div>
+      <div class="grid g3">
+        <div class="kpi sky"><div class="kpi-label">In 5 Years</div><div class="kpi-val" id="fc-5y">$0</div></div>
+        <div class="kpi mint"><div class="kpi-label">In 10 Years</div><div class="kpi-val" id="fc-10y">$0</div></div>
+        <div class="kpi lavender"><div class="kpi-label">In 20 Years</div><div class="kpi-val" id="fc-20y">$0</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card"><div class="card-title">Monthly Cashflow Over Time</div><div class="chart-wrap" style="height:200px"><canvas id="fc-cf-chart"></canvas></div></div>
+    <div class="card"><div class="card-title">Future Plans Impact</div><div id="fc-plans-impact"></div></div>
+  </div>
+</div>
+
+<!-- ── RETIREMENT ── -->
+<div id="screen-retirement" class="screen">
+  <div class="ph"><div class="ph-left"><h1>Retirement Planning</h1><p>Simulate retirement using your actual assets and income data.</p></div></div>
+  <div class="card mb1">
+    <div class="card-title">Retirement Settings</div>
+    <div class="form-row fr4">
+      <div class="field"><div class="label-row"><span class="label-text">Current Age</span><button class="tip-btn" type="button" onclick="tip('ret-age')" style="flex-shrink:0">?</button></div><input type="number" id="ret-age" value="40" min="18" max="70" oninput="calcRetirement()"></div>
+      <div class="field"><div class="label-row"><span class="label-text">Retirement Age Target</span><button class="tip-btn" type="button" onclick="tip('ret-target-age')" style="flex-shrink:0">?</button></div><input type="number" id="ret-target-age" value="65" min="50" max="75" oninput="calcRetirement()"></div>
+      <div class="field"><div class="label-row"><span class="label-text">Life Expectancy</span><button class="tip-btn" type="button" onclick="tip('ret-life')" style="flex-shrink:0">?</button></div><input type="number" id="ret-life" value="90" min="75" max="105" oninput="calcRetirement()"></div>
+      <div class="field"><div class="label-row"><span class="label-text">Monthly Income Needed ($)</span><button class="tip-btn" type="button" onclick="tip('ret-need')" style="flex-shrink:0">?</button></div><input type="number" id="ret-need" value="5000" min="0" oninput="calcRetirement()"></div>
+    </div>
+    <div class="form-row fr4">
+      <div class="field"><div class="label-row"><span class="label-text">Return on Investments (%)</span><button class="tip-btn" type="button" onclick="tip('ret-return')" style="flex-shrink:0">?</button></div><input type="number" id="ret-return" value="5" min="0" max="12" step="0.5" oninput="calcRetirement()"></div>
+      <div class="field"><div class="label-row"><span class="label-text">Inflation in Retirement (%)</span><button class="tip-btn" type="button" onclick="tip('ret-inflation')" style="flex-shrink:0">?</button></div><input type="number" id="ret-inflation" value="2.5" min="0" max="6" step="0.5" oninput="calcRetirement()"></div>
+      <div class="field"><div class="label-row"><span class="label-text">Age Pension / Month ($)</span><button class="tip-btn" type="button" onclick="tip('ret-pension')" style="flex-shrink:0">?</button></div><input type="number" id="ret-pension" value="800" min="0" oninput="calcRetirement()"></div>
+      <div class="field"><div class="label-row"><span class="label-text">Other Passive Income ($)</span><button class="tip-btn" type="button" onclick="tip('ret-passive')" style="flex-shrink:0">?</button></div><input type="number" id="ret-passive" value="0" min="0" oninput="calcRetirement()"></div>
+    </div>
+  </div>
+  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi sky"><div class="kpi-label">Years to Retirement</div><div class="kpi-val" id="ret-years-left">25</div></div>
+    <div class="kpi mint"><div class="kpi-label">Projected Super</div><div class="kpi-val" id="ret-super-proj">$0</div></div>
+    <div class="kpi lavender"><div class="kpi-label">Total Assets at Retirement</div><div class="kpi-val" id="ret-assets-proj">$0</div></div>
+    <div class="kpi amber"><div class="kpi-label">Funds Last Until</div><div class="kpi-val" id="ret-last-age">—</div></div>
+  </div>
+  <div class="grid g21 mb1">
+    <div class="card"><div class="card-title">Retirement Fund Simulation</div><div class="chart-wrap" style="height:240px"><canvas id="ret-chart"></canvas></div></div>
+    <div class="card"><div class="card-title">Status & Alerts</div><div id="ret-alerts"></div></div>
+  </div>
+</div>
+
+<!-- ── AGE PENSION ── -->
+<div id="screen-pension" class="screen">
+  <div class="ph">
+    <div class="ph-left">
+      <h1>🏛️ Australian Age Pension</h1>
+      <p>Centrelink eligibility calculator based on your current data — Perth / WA rules (2024–25 rates).</p>
+    </div>
+    <div class="ph-actions">
+      <button type="button" class="btn btn-sky btn-sm" onclick="syncFromRetirement()">⬅️ Sync from Retirement</button>
+      <button type="button" class="btn btn-sm" onclick="calcPension()">🔄 Recalculate</button>
+    </div>
+  </div>
+
+  <!-- Eligibility Result Banner -->
+  <div id="pen-banner" class="card mb1" style="border:2px solid var(--line)">
+    <div class="flex ac gap1">
+      <div id="pen-banner-icon" style="font-size:2.5rem;flex-shrink:0">⏳</div>
+      <div style="flex:1">
+        <div id="pen-banner-title" style="font-size:1.1rem;font-weight:700;margin-bottom:.3rem">Calculating…</div>
+        <div id="pen-banner-body" style="font-size:.82rem;color:var(--text2);line-height:1.6"></div>
+      </div>
+      <div id="pen-banner-amount" style="text-align:right;flex-shrink:0">
+        <div style="font-size:.68rem;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.25rem">Est. Fortnightly Payment</div>
+        <div id="pen-fortnight" style="font-family:'JetBrains Mono',monospace;font-size:1.8rem;font-weight:500">—</div>
+        <div id="pen-annual" style="font-size:.72rem;color:var(--text2);margin-top:.15rem">per year</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tests row -->
+  <div class="grid g3 mb1">
+    <div class="card" id="pen-age-card">
+      <div class="card-title">Age Test</div>
+      <div class="flex ac gap05 mb1">
+        <div id="pen-age-icon" style="font-size:1.5rem">⏳</div>
+        <div>
+          <div id="pen-age-result" class="fw6 fs12">—</div>
+          <div class="col2 fs11">Qualifying age: 67</div>
+        </div>
+      </div>
+      <div style="font-size:.77rem;color:var(--text2);line-height:1.6">Must be <strong>67 or older</strong> (born after 1 Jan 1957). Must also be an Australian resident for at least 10 years.</div>
+    </div>
+
+    <div class="card" id="pen-income-card">
+      <div class="card-title">Income Test</div>
+      <div class="flex ac gap05 mb1">
+        <div id="pen-income-icon" style="font-size:1.5rem">⏳</div>
+        <div>
+          <div id="pen-income-result" class="fw6 fs12">—</div>
+          <div class="col2 fs11" id="pen-income-limit-label">Limit: $—</div>
+        </div>
+      </div>
+      <div id="pen-income-breakdown" style="font-size:.77rem;color:var(--text2);line-height:1.7"></div>
+    </div>
+
+    <div class="card" id="pen-assets-card">
+      <div class="card-title">Assets Test</div>
+      <div class="flex ac gap05 mb1">
+        <div id="pen-assets-icon" style="font-size:1.5rem">⏳</div>
+        <div>
+          <div id="pen-assets-result" class="fw6 fs12">—</div>
+          <div class="col2 fs11" id="pen-assets-limit-label">Limit: $—</div>
+        </div>
+      </div>
+      <div id="pen-assets-breakdown" style="font-size:.77rem;color:var(--text2);line-height:1.7"></div>
+    </div>
+  </div>
+
+  <!-- Personal details + Deeming -->
+  <div class="grid g2 mb1">
+    <div class="card">
+      <div class="card-title">Applicant Details</div>
+
+      <!-- Relationship status toggle -->
+      <div class="form-row fr2">
+        <div>
+          <div class="label-row"><span class="label-text">Relationship Status</span><button class="tip-btn" type="button" onclick="tip('pen-status')">?</button></div>
+          <select id="pen-status" onchange="togglePartner();calcPension()">
+            <option value="couple">👫 Couple (assessed together)</option>
+            <option value="single">🧑 Single</option>
+          </select>
+        </div>
+        <div>
+          <div class="label-row"><span class="label-text">Home Ownership</span><button class="tip-btn" type="button" onclick="tip('pen-homeowner')">?</button></div>
+          <select id="pen-homeowner" onchange="calcPension()">
+            <option value="yes">🏠 Yes — own our home</option>
+            <option value="no">🏢 No — rent or board</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Person 1 -->
+      <div style="background:var(--ink3);border-radius:8px;padding:.85rem;margin-bottom:.65rem;border:1px solid var(--line)">
+        <div style="font-size:.68rem;color:var(--sky);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.65rem">Person 1 (Applicant)</div>
+        <div class="form-row fr3">
+          <div>
+            <div class="label-row"><span class="label-text">Name</span></div>
+            <input type="text" id="pen-p1-name" placeholder="e.g. Alex" oninput="calcPension()">
+          </div>
+          <div>
+            <div class="label-row"><span class="label-text">Current Age</span><button class="tip-btn" type="button" onclick="tip('pen-age')">?</button></div>
+            <input type="number" id="pen-age" value="60" min="40" max="100" oninput="calcPension()">
+          </div>
+          <div>
+            <div class="label-row"><span class="label-text">Employment Status</span></div>
+            <select id="pen-p1-emp" onchange="calcPension()">
+              <option value="retired">Retired</option>
+              <option value="working">Working</option>
+              <option value="part-time">Part-time</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row fr2">
+          <div>
+            <div class="label-row"><span class="label-text">Employment Income ($/fn)</span><button class="tip-btn" type="button" onclick="tip('pen-extra-income')">?</button></div>
+            <input type="number" id="pen-p1-wages" value="0" min="0" oninput="calcPension()" placeholder="0">
+          </div>
+          <div>
+            <div class="label-row"><span class="label-text">Other Assessable Income ($/fn)</span></div>
+            <input type="number" id="pen-p1-other" value="0" min="0" oninput="calcPension()" placeholder="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- Person 2 (couple only) -->
+      <div id="pen-partner-block" style="background:var(--ink3);border-radius:8px;padding:.85rem;margin-bottom:.65rem;border:1px solid var(--line)">
+        <div style="font-size:.68rem;color:var(--lavender);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.65rem">Person 2 (Partner)</div>
+        <div class="form-row fr3">
+          <div>
+            <div class="label-row"><span class="label-text">Name</span></div>
+            <input type="text" id="pen-p2-name" placeholder="e.g. Jordan" oninput="calcPension()">
+          </div>
+          <div>
+            <div class="label-row"><span class="label-text">Partner Age</span></div>
+            <input type="number" id="pen-p2-age" value="58" min="40" max="100" oninput="calcPension()">
+          </div>
+          <div>
+            <div class="label-row"><span class="label-text">Employment Status</span></div>
+            <select id="pen-p2-emp" onchange="calcPension()">
+              <option value="retired">Retired</option>
+              <option value="working">Working</option>
+              <option value="part-time">Part-time</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row fr2">
+          <div>
+            <div class="label-row"><span class="label-text">Employment Income ($/fn)</span></div>
+            <input type="number" id="pen-p2-wages" value="0" min="0" oninput="calcPension()" placeholder="0">
+          </div>
+          <div>
+            <div class="label-row"><span class="label-text">Other Assessable Income ($/fn)</span></div>
+            <input type="number" id="pen-p2-other" value="0" min="0" oninput="calcPension()" placeholder="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- Extra income note -->
+      <div class="alert alert-sky" style="font-size:.74rem">
+        <span>ℹ️</span><div>Use <strong>⬅️ Sync from Retirement</strong> to auto-populate from your Retirement screen. Financial asset income is <strong>deemed</strong> automatically from Assets. Rental/dividend income from Income is included. Only add employment wages or other income not already entered.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Deeming Calculation (Financial Assets)</div>
+      <div id="pen-deeming-breakdown" style="font-size:.8rem;line-height:1.8;color:var(--text2)">
+        <div class="empty-state">Enter your data in Assets to see deeming calculation.</div>
+      </div>
+      <div class="divider"></div>
+      <div class="flex jb ac">
+        <span class="fs11 col2">Total Deemed Income (fortnightly)</span>
+        <span class="mono fw6 col-sky" id="pen-deemed-total">$0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment calculation + timeline -->
+  <div class="grid g2 mb1">
+    <div class="card">
+      <div class="card-title">Payment Rate Calculation</div>
+      <div id="pen-payment-calc" style="font-size:.8rem;line-height:2;color:var(--text2)">
+        <div class="empty-state">Complete your details above to see payment breakdown.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Pension Eligibility Timeline</div>
+      <div class="chart-wrap" style="height:200px"><canvas id="pen-timeline-chart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Supplements + What to do -->
+  <div class="grid g2">
+    <div class="card">
+      <div class="card-title">Additional Supplements (if eligible)</div>
+      <div id="pen-supplements"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Recommendations</div>
+      <div id="pen-recommendations"></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script is:inline>
+// ═══════════════════════════════════════
+// DATA STORE
+// ═══════════════════════════════════════
+const DB = { income:[], expenses:[], assets:[], debts:[], goals:[], plans:[] };
+
+const ICONS = {
+  income:  { salary:'💼', bonus:'🎯', freelance:'💻', rental:'🏠', dividends:'📈', pension:'🌅', other:'📦' },
+  expense: { housing:'🏠', food:'🍽️', transport:'🚗', utilities:'⚡', health:'🏥', education:'🎓', childcare:'👶', entertainment:'🎬', clothing:'👕', insurance:'🛡️', subscriptions:'📱', other:'📦' },
+  asset:   { property:'🏠', investment_prop:'🏢', super:'🌅', etf:'📊', shares:'📈', savings:'💰', crypto:'🔐', other:'📦' },
+  debt:    { mortgage:'🏠', investment_loan:'🏢', car:'🚗', personal:'💳', credit_card:'💳', hecs:'🎓', other:'📦' },
+  plan:    { purchase:'🛍️', renovation:'🔨', education:'🎓', travel:'✈️', investment:'📈', family:'👶', business:'💼', other:'📦' },
+};
+
+// ═══════════════════════════════════════
+// TOOLTIP DEFINITIONS
+// ═══════════════════════════════════════
+const TIPS = {
+  'inc-name':    { icon:'💼', title:'Income Source Name', body:'Enter a descriptive name, ideally including the person\'s name.<br><br>Examples: <strong>Alex — Salary</strong>, <strong>Jordan — Part-time</strong>, <strong>Investment Property Rent</strong>.' },
+  'inc-amount':  { icon:'💰', title:'Monthly Income Amount', body:'Enter the <strong>after-tax</strong> amount you receive each month. If paid fortnightly, multiply by 26 and divide by 12.<br><div class="example">Fortnightly $3,000 → Monthly: 3000 × 26 ÷ 12 = $6,500</div>' },
+  'inc-growth':  { icon:'📈', title:'Annual Growth Rate', body:'How much this income source grows each year (as a %). Australia\'s average wage growth is 3–4%.<br><br><strong>Salary:</strong> 3–5% &nbsp;|&nbsp; <strong>Rental:</strong> 2–4% &nbsp;|&nbsp; <strong>Dividends:</strong> 2–5%<br><br>Use 0% if you don\'t expect this income to grow.' },
+  'exp-name':    { icon:'💳', title:'Expense Name', body:'Give it a clear name so you recognise it later.<br><div class="example">e.g. "Coles Weekly Shop", "Mortgage — Benara St", "School Fees — St Mary\'s"</div>' },
+  'exp-amount':  { icon:'💸', title:'Monthly Expense Amount', body:'Enter the average monthly cost. If you pay annually, divide by 12. If it varies, use a realistic average.<br><div class="example">Annual insurance $2,400 → Monthly: $200</div>' },
+  'exp-type':    { icon:'📋', title:'Expense Type', body:'<strong>Fixed:</strong> Same amount every month — mortgage, school fees, insurance, subscriptions.<br><br><strong>Variable:</strong> Changes but is necessary — groceries, petrol, electricity.<br><br><strong>Discretionary:</strong> Optional spending you could reduce if needed — dining out, entertainment, hobbies.' },
+  'exp-growth':  { icon:'📊', title:'Annual Expense Increase', body:'How much this expense grows per year. Use general CPI (2.5–3%) for most expenses.<br><br><strong>School fees:</strong> often 4–6% &nbsp;|&nbsp; <strong>Utilities:</strong> 3–5% &nbsp;|&nbsp; <strong>Subscriptions:</strong> 5–10%' },
+  'ast-name':    { icon:'🏠', title:'Asset Name', body:'Enter a recognisable name for this asset.<br><div class="example">e.g. "Family Home — 12 Oak St", "Alex Super — AMP", "S&P 500 ETF (VTS)"</div>' },
+  'ast-value':   { icon:'💎', title:'Current Asset Value', body:'Enter the <strong>current market value</strong> — what you could sell it for today.<br><br>For property: use a recent estimate or last valuation.<br>For super: use your latest statement balance.<br>For investments: use today\'s portfolio value.' },
+  'ast-return':  { icon:'📈', title:'Expected Annual Return', body:'The average annual growth rate for this asset type (before inflation).<br><br><strong>Property:</strong> 4–7% &nbsp;|&nbsp; <strong>Balanced Super:</strong> 6–8%<br><strong>ETFs (S&P 500):</strong> 8–10% &nbsp;|&nbsp; <strong>Shares:</strong> 7–10%<br><strong>Savings account:</strong> 3–5% &nbsp;|&nbsp; <strong>Crypto:</strong> highly variable' },
+  'ast-contrib': { icon:'💸', title:'Monthly Contribution', body:'How much you add to this asset each month.<br><br>For <strong>super</strong>: enter your employer\'s contribution (typically 11% of salary from 2023) plus any voluntary contributions.<br><div class="example">Salary $6,000/mo × 11% = $660/mo employer super</div>' },
+  'dbt-name':    { icon:'🏦', title:'Debt Name', body:'Enter a clear name identifying the loan.<br><div class="example">e.g. "CBA Home Loan — 12 Oak St", "Car Loan — Mazda CX5", "ANZ Credit Card"</div>' },
+  'dbt-balance': { icon:'💳', title:'Outstanding Balance', body:'The <strong>current amount you still owe</strong> — not the original loan amount. Find this on your latest statement.<br><div class="example">If you originally borrowed $500k and have paid off $50k, enter $450,000</div>' },
+  'dbt-rate':    { icon:'%', title:'Interest Rate (% p.a.)', body:'The annual interest rate charged on this debt. Find it on your statement or loan documents.<br><br><strong>Mortgages:</strong> ~5.5–7% &nbsp;|&nbsp; <strong>Car loans:</strong> 6–10%<br><strong>Personal loans:</strong> 8–15% &nbsp;|&nbsp; <strong>Credit cards:</strong> 19–22%<br><strong>HECS:</strong> indexed to CPI (~3–5%)' },
+  'dbt-repayment': { icon:'💵', title:'Monthly Repayment', body:'Your <strong>total monthly payment</strong> including both principal and interest.<br><br>For mortgages: check your bank statement — this is what leaves your account each month.<br><div class="example">$3,200 fortnightly payments → Monthly: 3,200 × 26 ÷ 12 = $6,933</div>' },
+  'dbt-years':   { icon:'📅', title:'Years Remaining', body:'How many years until this loan is fully paid off.<br><br>For a 30-year mortgage taken out 5 years ago, enter 25.<br>For credit cards, estimate based on minimum payments vs balance.' },
+  'gl-name':     { icon:'🎯', title:'Goal Name', body:'Give your savings goal a clear name.<br><div class="example">e.g. "Emergency Fund (6 months)", "Europe Holiday 2026", "Kids\' Uni Fund", "House Deposit"</div>' },
+  'gl-target':   { icon:'🎯', title:'Target Amount', body:'The total amount you want to save for this goal.<br><br><strong>Emergency fund:</strong> 3–6 months of expenses (e.g. $30,000–$50,000)<br><strong>Holiday:</strong> your estimated total trip cost<br><strong>House deposit:</strong> 10–20% of purchase price + stamp duty + costs' },
+  'gl-saved':    { icon:'💰', title:'Already Saved', body:'How much you have already set aside specifically for this goal. If this money is mixed with your general savings, enter 0 and update as you set it aside.' },
+  'gl-monthly':  { icon:'📅', title:'Monthly Contribution', body:'How much you plan to put towards this goal each month. The planner will calculate how many months until you reach your target.<br><div class="example">Target $20,000, saved $5,000, adding $500/mo → 30 months to go</div>' },
+  'pl-name':     { icon:'🔮', title:'Future Plan Name', body:'Describe what you\'re planning.<br><div class="example">e.g. "New family car", "Kitchen renovation", "Child 1 university 2030", "Second investment property deposit"</div>' },
+  'pl-cost':     { icon:'💸', title:'Estimated Cost', body:'Your best estimate of the total cost in today\'s dollars. The forecast will deduct this from your savings in the year it occurs.<br><br>For multi-year costs (e.g. university fees spread over 4 years), you can add a separate plan entry for each year.' },
+  'pl-year':     { icon:'📅', title:'Year Planned', body:'The year you expect this expense to occur. The forecast chart will show a drop in your net worth in that year.<br><br>If uncertain, choose a likely year — you can always edit it later.' },
+  'pl-funding':  { icon:'💳', title:'Funding Strategy', body:'How do you plan to fund this expense?<br><br><strong>From savings:</strong> Will draw down existing savings<br><strong>New loan:</strong> Will borrow money (adds to debt)<br><strong>From cashflow:</strong> Will pay from monthly income<br><strong>Mixed:</strong> Combination of the above' },
+  'sl-incgrow':  { icon:'📈', title:'Income Growth Rate', body:'How much your total household income grows each year on average. This includes wage increases, career progression, and growing passive income.<br><br><strong>Conservative:</strong> 1.5–2% (just keeping up with inflation)<br><strong>Moderate:</strong> 3–4% (normal career progression)<br><strong>Optimistic:</strong> 5%+ (promotions, business growth)' },
+  'sl-expinfl':  { icon:'💸', title:'Expense Inflation Rate', body:'How much your total expenses increase each year. This is typically driven by general inflation (CPI).<br><br><strong>Australia target CPI:</strong> 2–3%<br><strong>Conservative estimate:</strong> 3.5–4% (higher than target)<br><strong>Optimistic:</strong> 2% (lifestyle kept in check)' },
+  'sl-invret':   { icon:'📊', title:'Investment Return Rate', body:'The average annual return on your investment portfolio (excluding property).<br><br><strong>Balanced super / ETFs:</strong> 6–8%<br><strong>Growth portfolio:</strong> 8–10%<br><strong>Conservative:</strong> 4–5%<br><br>This is a nominal rate — not adjusted for inflation.' },
+  'sl-propgrow': { icon:'🏠', title:'Property Growth Rate', body:'The average annual capital growth of your property assets.<br><br><strong>Australian capital cities (long-term):</strong> 5–7%<br><strong>Regional areas:</strong> 3–5%<br><strong>Conservative:</strong> 3%<br><br>Note: this doesn\'t account for rental yield (add that in your income).' },
+  'sl-extrasav': { icon:'💰', title:'Extra Monthly Savings', body:'An additional amount you could save each month beyond your current cashflow — for example, if you cut discretionary spending, got a pay rise, or took on extra work.<br><br>Use this slider to model "what if I saved an extra $500/month?"' },
+  'sl-horizon':  { icon:'📅', title:'Forecast Horizon', body:'How many years into the future to project. A longer horizon shows more compounding effect but is less certain.<br><br>For general planning: 10–20 years. For retirement planning: use the Retirement tab instead.' },
+  'ret-age':     { icon:'🧑', title:'Current Age', body:'Your age today (or the primary earner\'s age if planning as a couple). This determines how many years you have to grow your assets before retirement.' },
+  'ret-target-age': { icon:'🎯', title:'Target Retirement Age', body:'The age at which you plan to stop working. In Australia, you can access super from <strong>preservation age</strong> (60 for most people) and receive full Age Pension from <strong>67</strong>.' },
+  'ret-life':    { icon:'📅', title:'Life Expectancy', body:'How long you want your money to last. Australian average life expectancy is ~83 (men) and ~87 (women).<br><br>For planning purposes, use <strong>90–95</strong> to be safe. Running out of money at 85 because you planned for 83 is a serious risk.' },
+  'ret-need':    { icon:'💰', title:'Monthly Income Needed in Retirement', body:'What you expect to spend each month in retirement, in today\'s dollars. This will be inflated automatically.<br><br><strong>ASFA Comfortable standard (couple):</strong> ~$6,900/mo<br><strong>ASFA Modest:</strong> ~$4,500/mo<br><br>Your expenses in retirement may be lower (no mortgage, no work costs, children grown) or higher (travel, health care).' },
+  'ret-return':  { icon:'📈', title:'Return on Investments in Retirement', body:'Expected annual return on your portfolio during retirement. This is typically lower than your accumulation phase as you shift to a more conservative (income-focused) allocation.<br><br><strong>Typical range:</strong> 4–6% for a balanced/conservative mix.' },
+  'ret-inflation': { icon:'📊', title:'Inflation in Retirement', body:'The rate at which your living costs increase each year during retirement. Use the RBA target of 2–3%. Higher if you want to be conservative.' },
+  'ret-pension': { icon:'🌅', title:'Age Pension / Month', body:'Australia\'s Age Pension for a couple is currently around $1,770/fortnight ($3,856/month). For a single person it\'s ~$1,149/fortnight ($2,490/month).<br><br>Eligibility depends on your assets and income. Enter 0 if you expect to be self-funded.' },
+  'ret-passive': { icon:'💸', title:'Other Passive Income in Retirement', body:'Any other regular income you expect in retirement beyond super and pension — e.g. rental income from investment property, dividends from a share portfolio outside of super, or part-time work.' },
+
+  'pen-age':          {icon:'🎂', title:'Your Current Age', body:'Enter your age today. The Age Pension qualifying age is <strong>67</strong> for anyone born on or after 1 January 1957. If you are a couple, enter the age of the applicant.'},
+  'pen-status':       {icon:'👫', title:'Relationship Status', body:'<strong>Couple:</strong> Centrelink assesses combined income and assets. Rate per person is lower but combined may be higher.<br><strong>Single:</strong> Higher individual rate, lower thresholds.'},
+  'pen-homeowner':    {icon:'🏠', title:'Home Ownership', body:'<strong>Homeowner:</strong> Principal residence is exempt from assets test, but asset limits are lower.<br><strong>Non-homeowner:</strong> Higher asset limits apply to fund housing costs.'},
+  'pen-extra-income': {icon:'💵', title:'Additional Assessable Income (Fortnightly)', body:'Any fortnightly income not already in your Income section. Centrelink applies a Work Bonus of $300 per fortnight to offset employment income.'},
+};
+
+// ═══════════════════════════════════════
+// TOOLTIP SYSTEM
+// ═══════════════════════════════════════
+function tip(key) {
+  const t = TIPS[key]; if (!t) return;
+  document.getElementById('tt-icon').textContent = t.icon;
+  document.getElementById('tt-title').textContent = t.title;
+  document.getElementById('tt-body').innerHTML = t.body;
+  document.getElementById('tooltip-overlay').classList.add('show');
+}
+function closeTooltip(e) {
+  if (!e || e.target === document.getElementById('tooltip-overlay')) {
+    document.getElementById('tooltip-overlay').classList.remove('show');
+  }
+}
+
+// ═══════════════════════════════════════
+// EDIT MODAL SYSTEM
+// ═══════════════════════════════════════
+let editContext = null; // { type, id }
+
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+const opts = (map, sel) => Object.entries(map).map(([v,l])=>`<option value="${v}"${v===sel?' selected':''}>${l}</option>`).join('');
+const EDIT_TEMPLATES = {
+  income: (x) => `
+    <div class="form-row fr3">
+      <div class="field"><label>Name / Person</label><input type="text" id="e-inc-name" value="${esc(x.name)}"></div>
+      <div class="field"><label>Monthly Amount ($)</label><input type="number" id="e-inc-amount" value="${x.amount}"></div>
+      <div class="field"><label>Type</label><select id="e-inc-type">${opts({salary:'💼 Salary',bonus:'🎯 Bonus',freelance:'💻 Freelance',rental:'🏠 Rental',dividends:'📈 Dividends',pension:'🌅 Pension',other:'📦 Other'},x.type)}</select></div>
+    </div>
+    <div class="form-row fr2">
+      <div class="field"><label>Annual Growth Rate (%)</label><input type="number" id="e-inc-growth" value="${x.growth}" min="0" max="20" step="0.5"></div>
+      <div class="field"><label>Note</label><input type="text" id="e-inc-note" value="${esc(x.note||'')}"></div>
+    </div>`,
+  expense: (x) => `
+    <div class="form-row fr3">
+      <div class="field"><label>Name</label><input type="text" id="e-exp-name" value="${esc(x.name)}"></div>
+      <div class="field"><label>Monthly Amount ($)</label><input type="number" id="e-exp-amount" value="${x.amount}"></div>
+      <div class="field"><label>Category</label><select id="e-exp-cat">${opts({housing:'🏠 Housing',food:'🍽️ Food',transport:'🚗 Transport',utilities:'⚡ Utilities',health:'🏥 Health',education:'🎓 Education',childcare:'👶 Childcare',entertainment:'🎬 Entertainment',clothing:'👕 Clothing',insurance:'🛡️ Insurance',subscriptions:'📱 Subscriptions',other:'📦 Other'},x.cat)}</select></div>
+    </div>
+    <div class="form-row fr2">
+      <div class="field"><label>Type</label><select id="e-exp-type">${opts({fixed:'Fixed',variable:'Variable',discretionary:'Discretionary'},x.type)}</select></div>
+      <div class="field"><label>Annual Increase (%)</label><input type="number" id="e-exp-growth" value="${x.growth}" min="0" max="20" step="0.5"></div>
+    </div>`,
+  asset: (x) => `
+    <div class="form-row fr3">
+      <div class="field"><label>Name</label><input type="text" id="e-ast-name" value="${esc(x.name)}"></div>
+      <div class="field"><label>Current Value ($)</label><input type="number" id="e-ast-value" value="${x.value}"></div>
+      <div class="field"><label>Type</label><select id="e-ast-type">${opts({property:'🏠 Property (Primary)',investment_prop:'🏢 Investment Property',super:'🌅 Superannuation',etf:'📊 ETF / Index Fund',shares:'📈 Shares',savings:'💰 Savings / Cash',crypto:'🔐 Crypto',other:'📦 Other'},x.type)}</select></div>
+    </div>
+    <div class="form-row fr3">
+      <div class="field"><label>Expected Return (% p.a.)</label><input type="number" id="e-ast-return" value="${x.ret}" min="0" max="20" step="0.5"></div>
+      <div class="field"><label>Monthly Contribution ($)</label><input type="number" id="e-ast-contrib" value="${x.contrib}"></div>
+      <div class="field"><label>Note</label><input type="text" id="e-ast-note" value="${esc(x.note||'')}"></div>
+    </div>`,
+  debt: (x) => `
+    <div class="form-row fr3">
+      <div class="field"><label>Name</label><input type="text" id="e-dbt-name" value="${esc(x.name)}"></div>
+      <div class="field"><label>Outstanding Balance ($)</label><input type="number" id="e-dbt-balance" value="${x.balance}"></div>
+      <div class="field"><label>Type</label><select id="e-dbt-type">${opts({mortgage:'🏠 Mortgage',investment_loan:'🏢 Investment Loan',car:'🚗 Car Loan',personal:'💳 Personal Loan',credit_card:'💳 Credit Card',hecs:'🎓 HECS',other:'📦 Other'},x.type)}</select></div>
+    </div>
+    <div class="form-row fr3">
+      <div class="field"><label>Interest Rate (% p.a.)</label><input type="number" id="e-dbt-rate" value="${x.rate}" min="0" max="30" step="0.1"></div>
+      <div class="field"><label>Monthly Repayment ($)</label><input type="number" id="e-dbt-repayment" value="${x.repayment}"></div>
+      <div class="field"><label>Years Remaining</label><input type="number" id="e-dbt-years" value="${x.years}" min="0" max="40"></div>
+    </div>`,
+  goal: (x) => `
+    <div class="form-row fr3">
+      <div class="field"><label>Goal Name</label><input type="text" id="e-gl-name" value="${esc(x.name)}"></div>
+      <div class="field"><label>Target Amount ($)</label><input type="number" id="e-gl-target" value="${x.target}"></div>
+      <div class="field"><label>Already Saved ($)</label><input type="number" id="e-gl-saved" value="${x.saved}"></div>
+    </div>
+    <div class="form-row fr3">
+      <div class="field"><label>Monthly Contribution ($)</label><input type="number" id="e-gl-monthly" value="${x.monthly}"></div>
+      <div class="field"><label>Target Date</label><input type="text" id="e-gl-date" value="${esc(x.date||'')}"></div>
+      <div class="field"><label>Priority</label><select id="e-gl-priority">${opts({high:'🔴 High',medium:'🟡 Medium',low:'🟢 Low'},x.priority)}</select></div>
+    </div>`,
+  plan: (x) => `
+    <div class="form-row fr3">
+      <div class="field"><label>Plan Name</label><input type="text" id="e-pl-name" value="${esc(x.name)}"></div>
+      <div class="field"><label>Estimated Cost ($)</label><input type="number" id="e-pl-cost" value="${x.cost}"></div>
+      <div class="field"><label>Type</label><select id="e-pl-type">${opts({purchase:'🛍️ Purchase',renovation:'🔨 Renovation',education:'🎓 Education',travel:'✈️ Travel',investment:'📈 Investment',family:'👶 Family',business:'💼 Business',other:'📦 Other'},x.type)}</select></div>
+    </div>
+    <div class="form-row fr3">
+      <div class="field"><label>Year Planned</label><input type="number" id="e-pl-year" value="${x.year}" min="2025" max="2060"></div>
+      <div class="field"><label>Funding</label><select id="e-pl-funding">${opts({savings:'From savings',placeholder:'New loan',cashflow:'From cashflow',mixed:'Mixed'},x.funding)}</select></div>
+      <div class="field"><label>Note</label><input type="text" id="e-pl-note" value="${esc(x.note||'')}"></div>
+    </div>`,
+};
+
+const SAVE_FUNCS = {
+  income:  () => { const x = findEdit(); x.name=ev('e-inc-name'); x.amount=ef('e-inc-amount'); x.type=ev('e-inc-type'); x.growth=ef('e-inc-growth'); x.note=ev('e-inc-note'); renderIncome(); updateGlobals(); },
+  expense: () => { const x = findEdit(); x.name=ev('e-exp-name'); x.amount=ef('e-exp-amount'); x.cat=ev('e-exp-cat'); x.type=ev('e-exp-type'); x.growth=ef('e-exp-growth'); renderExpenses(); updateGlobals(); },
+  asset:   () => { const x = findEdit(); x.name=ev('e-ast-name'); x.value=ef('e-ast-value'); x.type=ev('e-ast-type'); x.ret=ef('e-ast-return'); x.contrib=ef('e-ast-contrib'); x.note=ev('e-ast-note'); renderAssets(); updateGlobals(); },
+  debt:    () => { const x = findEdit(); x.name=ev('e-dbt-name'); x.balance=ef('e-dbt-balance'); x.type=ev('e-dbt-type'); x.rate=ef('e-dbt-rate'); x.repayment=ef('e-dbt-repayment'); x.years=ef('e-dbt-years'); renderDebts(); updateGlobals(); },
+  goal:    () => { const x = findEdit(); x.name=ev('e-gl-name'); x.target=ef('e-gl-target'); x.saved=ef('e-gl-saved'); x.monthly=ef('e-gl-monthly'); x.date=ev('e-gl-date'); x.priority=ev('e-gl-priority'); renderGoals(); },
+  plan:    () => { const x = findEdit(); x.name=ev('e-pl-name'); x.cost=ef('e-pl-cost'); x.type=ev('e-pl-type'); x.year=parseInt(ev('e-pl-year')); x.funding=ev('e-pl-funding'); x.note=ev('e-pl-note'); renderPlans(); },
+};
+
+function openEdit(type, id) {
+  const mapKey = { income:'income', expense:'expenses', asset:'assets', debt:'debts', goal:'goals', plan:'plans' };
+  const item = DB[mapKey[type]].find(x => x.id === id);
+  if (!item) return;
+  editContext = { type, id };
+  document.getElementById('modal-title').innerHTML = `✏️ Edit ${type.charAt(0).toUpperCase()+type.slice(1)} <span class="badge badge-sky" style="font-size:0.7rem">editing</span>`;
+  document.getElementById('modal-body').innerHTML = EDIT_TEMPLATES[type](item);
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function saveEdit() {
+  if (!editContext) return;
+  SAVE_FUNCS[editContext.type]();
+  closeModal();
+  toast('✓ Entry updated');
+}
+
+function findEdit() {
+  const mapKey = { income:'income', expense:'expenses', asset:'assets', debt:'debts', goal:'goals', plan:'plans' };
+  return DB[mapKey[editContext.type]].find(x => x.id === editContext.id);
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('show');
+    editContext = null;
+  }
+}
+
+// ═══════════════════════════════════════
+// SAVE / LOAD PLAN
+// ═══════════════════════════════════════
+async function savePlan() {
+  const json = JSON.stringify({ 
+    version: 3, 
+    savedAt: new Date().toISOString(), 
+    ...DB 
+  }, null, 2);
+  
+  if ('showSaveFilePicker' in window) {
+    try {
+      const opts = {
+        suggestedName: 'family-finance-plan.json',
+        types: [{
+          description: 'Finance Plan JSON',
+          accept: { 'application/json': ['.json'] }
+        }]
+      };
+      const handle = await window.showSaveFilePicker(opts);
+      const writable = await handle.createWritable();
+      await writable.write(json);
+      await writable.close();
+      toast('💾 Plan saved to ' + handle.name);
+      return;
+    } catch (err) {
+      if (err.name !== 'AbortError') console.error('Save error:', err);
+    }
+  }
+  
+  const blob = new Blob([json], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'family-finance-plan.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('💾 Plan downloaded to your Downloads folder');
+}
+
+async function loadPlan(input) {
+  if (!input) {
+    if ('showOpenFilePicker' in window) {
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          types: [{
+            description: 'Finance Plan JSON',
+            accept: { 'application/json': ['.json'] }
+          }],
+          multiple: false
+        });
+        const file = await handle.getFile();
+        const text = await file.text();
+        loadPlanData(text, handle.name);
+        return;
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('Load error:', err);
+          toast('❌ Error opening file picker');
+        }
+        return;
+      }
+    }
+    document.getElementById('load-file').click();
+    return;
+  }
+  
+  const file = input.files[0]; 
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    loadPlanData(e.target.result, file.name);
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+function loadPlanData(jsonText, filename) {
+  try {
+    const data = JSON.parse(jsonText);
+    ['income','expenses','assets','debts','goals','plans'].forEach(k => {
+      if (data[k]) DB[k] = data[k];
+    });
+    renderIncome(); renderExpenses(); renderAssets();
+    renderDebts(); renderGoals(); renderPlans();
+    updateGlobals(); renderOverview();
+    toast('📂 ' + filename + ' loaded successfully');
+  } catch (err) {
+    console.error('Parse error:', err);
+    toast('❌ Error loading file — check it\'s a valid JSON plan');
+  }
+}
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function go(page, el) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + page).classList.add('active');
+  el.classList.add('active');
+  if (page === 'home')       renderOverview();
+  if (page === 'forecast')   renderForecast();
+  if (page === 'retirement') calcRetirement();
+  if (page === 'pension') { togglePartner(); calcPension(); }
+}
+
+function toggleAdd(id) {
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// ═══════════════════════════════════════
+// COMPUTED TOTALS
+// ═══════════════════════════════════════
+const totalIncome    = () => DB.income.reduce((s,x)=>s+x.amount,0);
+const totalExpenses  = () => DB.expenses.reduce((s,x)=>s+x.amount,0);
+const totalAssets    = () => DB.assets.reduce((s,x)=>s+x.value,0);
+const totalDebts     = () => DB.debts.reduce((s,x)=>s+x.balance,0);
+const totalRepayments= () => DB.debts.reduce((s,x)=>s+x.repayment,0);
+const totalContribs  = () => DB.assets.reduce((s,x)=>s+x.contrib,0);
+const netWorth       = () => totalAssets() - totalDebts();
+const monthlyCF      = () => totalIncome() - totalExpenses() - totalRepayments();
+const passiveIncome  = () => DB.income.filter(x=>['rental','dividends','pension'].includes(x.type)).reduce((s,x)=>s+x.amount,0);
+
+// ═══════════════════════════════════════
+// FORMATTING
+// ═══════════════════════════════════════
+function fmt(v) {
+  const a = Math.abs(v);
+  const s = a>=1e6 ? '$'+(a/1e6).toFixed(2)+'M' : a>=1e3 ? '$'+Math.round(a/1000)+'k' : '$'+Math.round(a).toLocaleString();
+  return v < 0 ? '-'+s : s;
+}
+const fmtFull = v => (v<0?'-$':'$')+Math.abs(Math.round(v)).toLocaleString();
+
+// ═══════════════════════════════════════
+// GLOBAL SIDEBAR UPDATE
+// ═══════════════════════════════════════
+function updateGlobals() {
+  const inc=totalIncome(), exp=totalExpenses()+totalRepayments(), cf=inc-exp, nw=netWorth();
+  setText('ss-income', fmtFull(inc));
+  setText('ss-expenses', fmtFull(exp));
+  const cfEl = document.getElementById('ss-cashflow');
+  cfEl.textContent = fmtFull(cf);
+  cfEl.className = 'ss-val '+(cf>=0?'pos':'neg');
+  setText('ss-networth', fmt(nw));
+}
+
+function setText(id, v) { const e=document.getElementById(id); if(e) e.textContent=v; }
+
+// ═══════════════════════════════════════
+// OVERVIEW
+// ═══════════════════════════════════════
+let ovChartIE, ovChartNW, expChart;
+function renderOverview() {
+  const inc=totalIncome(), exp=totalExpenses()+totalRepayments(), cf=inc-exp, nw=netWorth();
+  const rate = inc>0 ? Math.round(Math.max(0,cf)/inc*100) : 0;
+  setText('ov-income', fmt(inc)); setText('ov-expenses', fmt(exp));
+  const cfEl=document.getElementById('ov-cashflow');
+  cfEl.textContent=fmt(cf); cfEl.style.color=cf>=0?'var(--mint)':'var(--coral)';
+  setText('ov-networth', fmt(nw)); setText('ov-savings-rate','Savings rate: '+rate+'%');
+
+  const checks = [
+    { done: DB.income.length>0,   label: 'Add income sources', page:'income' },
+    { done: DB.expenses.length>0, label: 'Add monthly expenses', page:'expenses' },
+    { done: DB.assets.length>0,   label: 'Log assets & investments', page:'assets' },
+    { done: DB.debts.length>0,    label: 'Add debts & loans', page:'debts' },
+    { done: DB.goals.length>0,    label: 'Set savings goals', page:'savings' },
+    { done: DB.plans.length>0,    label: 'Add future plans', page:'plans' },
+  ];
+  document.getElementById('checklist').innerHTML = checks.map(c =>
+    `<div class="flex ac gap05" style="padding:0.42rem 0;border-bottom:1px solid var(--line2)">
+      <span style="color:${c.done?'var(--mint)':'var(--text3)'};font-size:1rem;width:20px">${c.done?'✓':'○'}</span>
+      <span style="font-size:0.81rem;color:${c.done?'var(--text)':'var(--text2)'};flex:1">${c.label}</span>
+      ${!c.done?`<button class="btn btn-sm" style="font-size:0.7rem" onclick="go('${c.page}', document.querySelectorAll('.nav-item')[${['income','expenses','assets','debts','savings','plans'].indexOf(c.page)+2}])">Go →</button>`:''}
+    </div>`
+  ).join('');
+
+  const colors=['rgba(88,166,255,0.75)','rgba(248,81,73,0.75)','rgba(210,153,34,0.75)','rgba(63,185,80,0.75)'];
+  if(ovChartIE) ovChartIE.destroy();
+  ovChartIE = new Chart(document.getElementById('ov-chart-ie'),{
+    type:'bar', data:{labels:['Income','Expenses','Repayments','Cashflow'],
+    datasets:[{data:[inc, totalExpenses(), totalRepayments(), Math.max(0,cf)],backgroundColor:colors,borderRadius:6,borderSkipped:false}]},
+    options:chartOpts(true)
+  });
+
+  const asts=DB.assets;
+  const ac=['rgba(88,166,255,0.85)','rgba(63,185,80,0.85)','rgba(188,140,255,0.85)','rgba(57,197,207,0.85)','rgba(210,153,34,0.85)','rgba(248,81,73,0.85)'];
+  if(ovChartNW) ovChartNW.destroy();
+  ovChartNW = new Chart(document.getElementById('ov-chart-nw'),{
+    type:'doughnut',
+    data:{labels:asts.length?asts.map(a=>a.name):['No assets'],datasets:[{data:asts.length?asts.map(a=>a.value):[1],backgroundColor:ac,borderWidth:0,hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'right',labels:{color:'#8b949e',font:{size:10},boxWidth:10}}}}
+  });
+}
+
+// ═══════════════════════════════════════
+// INCOME
+// ═══════════════════════════════════════
+function addIncome() {
+  const name=v('inc-name'), amount=parseFloat(v('inc-amount')), type=v('inc-type');
+  const growth=parseFloat(v('inc-growth'))||3, note=v('inc-note');
+  if(!name||!amount) return flash('inc-name');
+  DB.income.push({id:uid(),name,amount,type,growth,note});
+  clearIds(['inc-name','inc-amount','inc-note']); set('inc-growth',3);
+  renderIncome(); updateGlobals(); toggleAdd('income-add'); toast('✓ Income added');
+}
+function renderIncome() {
+  setText('inc-total-m', fmtFull(totalIncome()));
+  setText('inc-total-a', fmtFull(totalIncome()*12)+' / year');
+  setText('inc-passive', fmtFull(passiveIncome()));
+  const list=document.getElementById('income-list');
+  list.innerHTML=DB.income.map(x=>itemRow(x.id,'income',ICONS.income[x.type]||'📦',x.name,
+    `${x.type} · ${x.growth}% growth/yr${x.note?' · '+esc(x.note):''}`,
+    `<span class="col-mint">${fmtFull(x.amount)}/mo</span>`)).join('') || emptyState('No income sources yet.');
+}
+
+// ═══════════════════════════════════════
+// EXPENSES
+// ═══════════════════════════════════════
+function addExpense() {
+  const name=v('exp-name'), amount=parseFloat(v('exp-amount')), cat=v('exp-cat');
+  const type=v('exp-type'), growth=parseFloat(v('exp-growth'))||2.5;
+  if(!name||!amount) return flash('exp-name');
+  DB.expenses.push({id:uid(),name,amount,cat,type,growth});
+  clearIds(['exp-name','exp-amount']); set('exp-growth',2.5);
+  renderExpenses(); updateGlobals(); toggleAdd('exp-add'); toast('✓ Expense added');
+}
+function renderExpenses() {
+  const total=totalExpenses(), fixed=DB.expenses.filter(x=>x.type==='fixed').reduce((s,x)=>s+x.amount,0);
+  setText('exp-total-m',fmtFull(total)); setText('exp-total-a',fmtFull(total*12)+' / year');
+  setText('exp-fixed',fmtFull(fixed)); setText('exp-variable',fmtFull(total-fixed));
+
+  let filtered = DB.expenses;
+  const filter = v('exp-filter');
+  if (filter && filter !== 'all') filtered = filtered.filter(x => x.cat === filter);
+  
+  const sort = v('exp-sort');
+  filtered.sort((a,b) => sort === 'amount' ? b.amount - a.amount : a.name.localeCompare(b.name));
+
+  const list=document.getElementById('exp-list');
+  list.innerHTML=filtered.map(x=>itemRow(x.id,'expense',ICONS.expense[x.cat]||'📦',x.name,
+    `${x.cat} · ${x.type} · ${x.growth}% inflation/yr`,
+    `<span class="col-coral">${fmtFull(x.amount)}/mo</span>`)).join('') || emptyState('No expenses found.');
+
+  if(expChart) expChart.destroy();
+  const cats = [...new Set(DB.expenses.map(x=>x.cat))];
+  const data = cats.map(c => DB.expenses.filter(x=>x.cat===c).reduce((s,x)=>s+x.amount,0));
+  expChart = new Chart(document.getElementById('exp-chart-pie'), {
+    type: 'doughnut',
+    data: { 
+      labels: cats, 
+      datasets: [{ 
+        data, 
+        backgroundColor: ['rgba(88,166,255,0.85)','rgba(63,185,80,0.85)','rgba(188,140,255,0.85)','rgba(57,197,207,0.85)','rgba(210,153,34,0.85)','rgba(248,81,73,0.85)'],
+        borderWidth: 0,
+        hoverOffset: 6
+      }] 
+    },
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false, 
+      cutout: '65%',
+      plugins: { 
+        legend: { 
+          position: 'right', 
+          labels: { color: '#8b949e', font: { size: 10 }, boxWidth: 10 } 
+        } 
+      } 
+    }
+  });
+}
+
+// ═══════════════════════════════════════
+// ASSETS
+// ═══════════════════════════════════════
+function addAsset() {
+  const name=v('ast-name'), value=parseFloat(v('ast-value')), type=v('ast-type');
+  const ret=parseFloat(v('ast-return'))||7, contrib=parseFloat(v('ast-contrib'))||0, note=v('ast-note');
+  if(!name||!value) return flash('ast-name');
+  DB.assets.push({id:uid(),name,value,type,ret,contrib,note});
+  clearIds(['ast-name','ast-value','ast-contrib','ast-note']); set('ast-return',7);
+  renderAssets(); updateGlobals(); toggleAdd('asset-add'); toast('✓ Asset added');
+}
+function renderAssets() {
+  const total=totalAssets(), contribs=totalContribs();
+  const avgRet=DB.assets.length?DB.assets.reduce((s,x)=>s+x.ret*x.value,0)/Math.max(total,1):0;
+  setText('ast-total',fmt(total)); setText('ast-contrib-total',fmtFull(contribs)); setText('ast-avg-return',avgRet.toFixed(1)+'%');
+  const list=document.getElementById('asset-list');
+  list.innerHTML=DB.assets.map(x=>itemRow(x.id,'asset',ICONS.asset[x.type]||'📦',x.name,
+    `${x.type.replace('_',' ')} · ${x.ret}% return${x.contrib?' · +'+fmtFull(x.contrib)+'/mo':''}${x.note?' · '+esc(x.note):''}`,
+    `<span class="col-sky">${fmt(x.value)}</span>`)).join('') || emptyState('No assets yet.');
+}
+
+// ═══════════════════════════════════════
+// DEBTS
+// ═══════════════════════════════════════
+function addDebt() {
+  const name=v('dbt-name'), balance=parseFloat(v('dbt-balance')), type=v('dbt-type');
+  const rate=parseFloat(v('dbt-rate'))||0, repayment=parseFloat(v('dbt-repayment'))||0, years=parseFloat(v('dbt-years'))||0;
+  if(!name||!balance) return flash('dbt-name');
+  DB.debts.push({id:uid(),name,balance,type,rate,repayment,years});
+  clearIds(['dbt-name','dbt-balance','dbt-rate','dbt-repayment','dbt-years']);
+  renderDebts(); updateGlobals(); toggleAdd('debt-add'); toast('✓ Debt added');
+}
+function renderDebts() {
+  const total=totalDebts(), repays=totalRepayments(), inc=totalIncome();
+  const dti=inc>0?Math.round(repays/inc*100):0;
+  setText('dbt-total',fmt(total)); setText('dbt-repay-total',fmtFull(repays));
+  const dtiEl=document.getElementById('dbt-dti');
+  if(dtiEl) {
+    dtiEl.textContent=dti+'%';
+    dtiEl.style.color=dti>35?'var(--coral)':dti>25?'var(--amber)':'var(--mint)';
+  }
+  const list=document.getElementById('debt-list');
+  list.innerHTML=DB.debts.map(x=>itemRow(x.id,'debt',ICONS.debt[x.type]||'📦',x.name,
+    `${x.rate}% interest · ${x.years} yrs remaining · ${fmtFull(x.repayment)}/mo repayment`,
+    `<span class="col-coral">${fmt(x.balance)}</span>`)).join('') || emptyState('No debts recorded.');
+}
+
+// ═══════════════════════════════════════
+// GOALS
+// ═══════════════════════════════════════
+function addGoal() {
+  const name=v('gl-name'), target=parseFloat(v('gl-target')), saved=parseFloat(v('gl-saved'))||0;
+  const dateStr=v('gl-date'), priority=v('gl-priority');
+  if(!name||!target||!dateStr) { flash('gl-name'); return; }
+
+  const months = parseTargetDateToMonths(dateStr);
+  const monthly = months > 0 ? (target - saved) / months : 0;
+
+  DB.goals.push({id:uid(),name,target,saved,monthly,date:dateStr,priority});
+  clearIds(['gl-name','gl-target','gl-saved','gl-date']);
+  renderGoals(); toggleAdd('goal-add'); toast('✓ Goal added ('+fmtFull(monthly)+'/mo)');
+}
+
+function parseTargetDateToMonths(dateStr) {
+  const target = new Date(dateStr);
+  const now = new Date();
+  const diff = (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
+  return Math.max(1, diff);
+}
+function renderGoals() {
+  const list=document.getElementById('goal-list');
+  if(!DB.goals.length){ list.innerHTML=emptyState('No goals yet. Add savings targets above.'); return; }
+  const pColors={high:'var(--coral)',medium:'var(--amber)',low:'var(--mint)'};
+  list.innerHTML=DB.goals.map(g=>{
+    const pct=Math.min(100,Math.round(g.saved/g.target*100));
+    const monthsLeft=g.monthly>0?Math.ceil((g.target-g.saved)/g.monthly):'—';
+    const clr=pColors[g.priority];
+    return `<div style="padding:0.8rem;background:var(--ink3);border-radius:8px;margin-bottom:0.55rem;border:1px solid var(--line)">
+      <div class="flex jb ac" style="margin-bottom:0.45rem">
+        <div><span class="fs12 fw6">${esc(g.name)}</span><span class="badge badge-${g.priority==='high'?'coral':g.priority==='medium'?'amber':'mint'}" style="margin-left:0.4rem">${g.priority}</span>${g.date?`<span class="col2 fs11" style="margin-left:0.5rem">· ${esc(g.date)}</span>`:''}</div>
+        <div class="flex ac gap05">
+          <span class="mono fs12" style="color:${clr}">${fmtFull(g.saved)} / ${fmtFull(g.target)}</span>
+          <button type="button" class="item-btn edit" onclick="openEdit('goal','${g.id}')">✏️</button>
+          <button type="button" class="item-btn del" onclick="deleteItem('goal','${g.id}')">✕</button>
+        </div>
+      </div>
+      <div class="pbar-track"><div class="pbar-fill" style="width:${pct}%;background:${clr}"></div></div>
+      <div class="flex jb" style="margin-top:0.3rem">
+        <span class="col2 fs11">${pct}% complete</span>
+        <span class="col2 fs11">${g.monthly?fmtFull(g.monthly)+'/mo · ~'+monthsLeft+' months left':'No monthly contribution set'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// PLANS
+// ═══════════════════════════════════════
+function addPlan() {
+  const name=v('pl-name'), cost=parseFloat(v('pl-cost')), type=v('pl-type');
+  const year=parseInt(v('pl-year')), funding=v('pl-funding'), note=v('pl-note');
+  if(!name){flash('pl-name');return;}
+  if(!cost||isNaN(cost)){flash('pl-cost');return;}
+  if(!year||isNaN(year)){flash('pl-year');return;}
+  DB.plans.push({id:uid(),name,cost,type,year,funding,note});
+  clearIds(['pl-name','pl-cost','pl-year','pl-note']);
+  renderPlans(); toggleAdd('plan-add'); toast('✓ Plan added');
+}
+function renderPlans() {
+  const list=document.getElementById('plan-list');
+  list.innerHTML=DB.plans.sort((a,b)=>a.year-b.year).map(x=>{
+    const yr=x.year-new Date().getFullYear();
+    return itemRow(x.id,'plan',ICONS.plan[x.type]||'📦',x.name,
+      `${x.year} (in ${yr} yr${yr!==1?'s':''}) · ${x.funding}${x.note?' · '+esc(x.note):''}`,
+      `<span class="col-amber">${fmt(x.cost)}</span>`);
+  }).join('') || emptyState('No plans yet.');
+}
+
+// ═══════════════════════════════════════
+// DELETE
+// ═══════════════════════════════════════
+function deleteItem(type, id) {
+  const mapKey={income:'income',expense:'expenses',asset:'assets',debt:'debts',goal:'goals',plan:'plans'};
+  DB[mapKey[type]]=DB[mapKey[type]].filter(x=>x.id!==id);
+  const renders={income:renderIncome,expense:renderExpenses,asset:renderAssets,debt:renderDebts,goal:renderGoals,plan:renderPlans};
+  renders[type](); updateGlobals(); toast('🗑 Entry removed');
+}
+
+// ═══════════════════════════════════════
+// ITEM ROW HTML
+// ═══════════════════════════════════════
+function itemRow(id, type, icon, name, meta, amountHtml) {
+  return `<div class="item-row">
+    <span class="item-icon">${icon}</span>
+    <div class="item-info"><div class="item-name">${esc(name)}</div><div class="item-meta">${meta}</div></div>
+    <div class="item-amount">${amountHtml}</div>
+    <div class="item-btns">
+      <button type="button" class="item-btn edit" onclick="openEdit('${type}','${id}')" title="Edit">✏️</button>
+      <button type="button" class="item-btn del" onclick="deleteItem('${type}','${id}')" title="Delete">✕</button>
+    </div>
+  </div>`;
+}
+function emptyState(msg) { return `<div class="empty-state">${msg}</div>`; }
+
+// ═══════════════════════════════════════
+// FORECAST
+// ═══════════════════════════════════════
+let fcNWChart, fcCFChart;
+function sliderVal(id) { return parseFloat(document.getElementById('sl-'+id).value); }
+function sliderChange(el, key, suffix) {
+  const val=parseFloat(el.value);
+  document.getElementById('sv-'+key).textContent = suffix==='$'?'$'+val.toLocaleString():val.toFixed(suffix===' yrs'?0:1)+suffix;
+  updateTrack(el); renderForecast();
+}
+function updateTrack(el) {
+  const pct=((parseFloat(el.value)-parseFloat(el.min))/(parseFloat(el.max)-parseFloat(el.min)))*100;
+  el.style.setProperty('--pct',pct+'%');
+}
+function setPreset(preset, el) {
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
+  const P={conservative:{incgrow:1.5,expinfl:3.5,invret:4,propgrow:3,extrasav:0,horizon:20},moderate:{incgrow:3,expinfl:2.5,invret:7,propgrow:5,extrasav:0,horizon:20},optimistic:{incgrow:5,expinfl:2,invret:10,propgrow:7,extrasav:500,horizon:20}};
+  const p=P[preset];
+  const suffs={incgrow:'%',expinfl:'%',invret:'%',propgrow:'%',extrasav:'$',horizon:' yrs'};
+  Object.keys(p).forEach(k=>{
+    const sl=document.getElementById('sl-'+k); if(sl) { sl.value=p[k]; updateTrack(sl); }
+    const suf=suffs[k], val=p[k];
+    const sv = document.getElementById('sv-'+k);
+    if(sv) sv.textContent=suf==='$'?'$'+val.toLocaleString():val.toFixed(suf===' yrs'?0:1)+suf;
+  });
+  renderForecast();
+}
+function renderForecast() {
+  const iG=sliderVal('incgrow')/100, eI=sliderVal('expinfl')/100;
+  const iR=sliderVal('invret')/100, pG=sliderVal('propgrow')/100;
+  const eS=sliderVal('extrasav'), H=Math.round(sliderVal('horizon'));
+  const startYear = new Date().getFullYear();
+  const labels=Array.from({length:H+1},(_,i)=>startYear+i);
+  const nwArr=[], cfArr=[];
+  let prop=DB.assets.filter(a=>['property','investment_prop'].includes(a.type)).reduce((s,x)=>s+x.value,0);
+  let inv=DB.assets.filter(a=>!['property','investment_prop'].includes(a.type)).reduce((s,x)=>s+x.value,0);
+  let debt=totalDebts(), inc=totalIncome(), exp=totalExpenses()+totalRepayments();
+  const mc=totalContribs();
+  const plansByYear={};
+  DB.plans.forEach(p=>{ plansByYear[p.year]=(plansByYear[p.year]||0)+p.cost; });
+
+  for(let i=0;i<=H;i++){
+    const yr=startYear+i, planCost=(plansByYear[yr]||0);
+    const cf=inc-exp+eS;
+    nwArr.push(Math.round(prop+inv-debt));
+    cfArr.push(Math.round(cf-planCost/12));
+    prop*=(1+pG);
+    inv=inv*(1+iR)+(mc+Math.max(0,cf*0.5))*12;
+    debt=Math.max(0,debt-totalRepayments()*12*0.6);
+    inc*=(1+iG); exp*=(1+eI);
+  }
+
+  setText('fc-5y',fmt(nwArr[Math.min(5,H)]));
+  setText('fc-10y',fmt(nwArr[Math.min(10,H)]));
+  setText('fc-20y',fmt(nwArr[Math.min(20,H)]));
+
+  if(fcNWChart) fcNWChart.destroy();
+  fcNWChart=new Chart(document.getElementById('fc-nw-chart'),{
+    type:'line',
+    data:{labels,datasets:[{label:'Net Worth',data:nwArr,borderColor:'rgba(88,166,255,1)',backgroundColor:'rgba(88,166,255,0.1)',borderWidth:2.5,pointRadius:0,pointHoverRadius:5,tension:0.4,fill:true}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+fmt(c.raw)}}},scales:{x:{grid:{display:false},ticks:{color:'#8b949e',maxTicksLimit:8}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8b949e',callback:v=>fmt(v)}}}}
+  });
+
+  if(fcCFChart) fcCFChart.destroy();
+  fcCFChart=new Chart(document.getElementById('fc-cf-chart'),{
+    type:'bar',
+    data:{labels,datasets:[{data:cfArr,backgroundColor:cfArr.map(v=>v>=0?'rgba(63,185,80,0.6)':'rgba(248,81,73,0.6)'),borderRadius:4,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+fmtFull(c.raw)+'/mo'}}},scales:{x:{grid:{display:false},ticks:{color:'#8b949e',maxTicksLimit:8}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8b949e',callback:v=>fmtFull(v)}}}}
+  });
+
+  const pi=document.getElementById('fc-plans-impact');
+  if(pi) {
+    if(!DB.plans.length){ pi.innerHTML=emptyState('No future plans added yet.'); return; }
+    pi.innerHTML=DB.plans.sort((a,b)=>a.year-b.year).map(p=>
+      `<div class="flex jb ac" style="padding:0.55rem 0;border-bottom:1px solid var(--line2)">
+        <div><div class="fs12">${ICONS.plan[p.type]} ${esc(p.name)}</div><div class="col2 fs11">${p.year} · ${p.funding}</div></div>
+        <span class="mono col-amber">${fmt(p.cost)}</span>
+      </div>`
+    ).join('')+`<div class="flex jb ac" style="padding:0.55rem 0;margin-top:0.2rem">
+      <span class="fw6 fs12">Total planned costs</span>
+      <span class="mono col-amber fw6">${fmt(DB.plans.reduce((s,p)=>s+p.cost,0))}</span>
+    </div>`;
+  }
+}
+
+// ═══════════════════════════════════════
+// RETIREMENT
+// ═══════════════════════════════════════
+let retChart;
+function calcRetirement() {
+  const age=parseInt(v('ret-age'))||40, retAge=parseInt(v('ret-target-age'))||65;
+  const lifeExp=parseInt(v('ret-life'))||90, needMo=parseFloat(v('ret-need'))||5000;
+  const retReturn=parseFloat(v('ret-return'))/100||0.05, retInfl=parseFloat(v('ret-inflation'))/100||0.025;
+  const pension=parseFloat(v('ret-pension'))||0, passive=parseFloat(v('ret-passive'))||0;
+  const yrsToRet=Math.max(0,retAge-age), yrsInRet=Math.max(1,lifeExp-retAge);
+
+  setText('ret-years-left',yrsToRet);
+
+  const superNow=DB.assets.filter(a=>a.type==='super').reduce((s,x)=>s+x.value,0);
+  const superC=DB.assets.filter(a=>a.type==='super').reduce((s,x)=>s+x.contrib,0);
+  const safeR=retReturn||0.001;
+  const fvFactor=yrsToRet>0?((Math.pow(1+safeR,yrsToRet)-1)/safeR):yrsToRet;
+  const superAt=superNow*Math.pow(1+safeR,yrsToRet)+superC*12*fvFactor;
+
+  const propNow=DB.assets.filter(a=>['property','investment_prop'].includes(a.type)).reduce((s,x)=>s+x.value,0);
+  const propAt=propNow*Math.pow(1.05,yrsToRet);
+  const invNow=DB.assets.filter(a=>!['property','investment_prop'].includes(a.type)&&a.type!=='super').reduce((s,x)=>s+x.value,0);
+  const invC=DB.assets.filter(a=>!['property','investment_prop'].includes(a.type)&&a.type!=='super').reduce((s,x)=>s+x.contrib,0);
+  const invAt=invNow*Math.pow(1+safeR,yrsToRet)+invC*12*fvFactor;
+  const debtAt=Math.max(0,totalDebts()-totalRepayments()*yrsToRet*12);
+  const liquidAt=superAt+invAt;
+  const totalAt=liquidAt+propAt-debtAt;
+  const drawableAt=liquidAt;
+
+  setText('ret-super-proj',fmt(superAt));
+  setText('ret-assets-proj',fmt(totalAt));
+
+  const labels=[], saldos=[];
+  let fund=drawableAt, lastAge=retAge;
+  for(let yr=0;yr<=yrsInRet;yr++){
+    const currentAge=retAge+yr;
+    labels.push('Age '+currentAge);
+    const needReal=needMo*Math.pow(1+retInfl,yr);
+    const passiveReal=(pension+passive)*Math.pow(1+retInfl,yr);
+    const netWithdrawal=Math.max(0, needReal - passiveReal) * 12;
+    fund = fund * (1 + safeR) - netWithdrawal;
+    saldos.push(Math.round(fund));
+    if(fund > 0) lastAge=currentAge;
+    if(fund <= 0) { fund=0; if(yr < yrsInRet) saldos[saldos.length-1]=0; }
+  }
+
+  const solvent=saldos[saldos.length-1]>0;
+  const lastAgeEl=document.getElementById('ret-last-age');
+  if(lastAgeEl) {
+    lastAgeEl.textContent=solvent?'Age '+lifeExp+'+ ✓':'Age '+lastAge;
+    lastAgeEl.style.color=solvent?'var(--mint)':'var(--coral)';
+  }
+
+  if(retChart) retChart.destroy();
+  retChart=new Chart(document.getElementById('ret-chart'),{
+    type:'line',
+    data:{labels,datasets:[{label:'Funds',data:saldos,borderColor:solvent?'rgba(63,185,80,1)':'rgba(248,81,73,1)',backgroundColor:solvent?'rgba(63,185,80,0.1)':'rgba(248,81,73,0.1)',borderWidth:2.5,pointRadius:0,tension:0.4,fill:true}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+fmt(c.raw)}}},scales:{x:{grid:{display:false},ticks:{color:'#8b949e',maxTicksLimit:10}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8b949e',callback:v=>fmt(v)}}}}
+  });
+
+  const alerts=[];
+  if(!solvent) alerts.push({t:'coral',m:`<strong>⚠️ Funds run out at age ${lastAge}.</strong> You may outlive your savings.`});
+  else alerts.push({t:'mint',m:`<strong>✅ Looking good!</strong> Funds projected to last through age ${lifeExp}.`});
+  const alEl = document.getElementById('ret-alerts');
+  if(alEl) alEl.innerHTML=alerts.map(a=>`<div class="alert alert-${a.t}">${a.m}</div>`).join('');
+}
+
+// ═══════════════════════════════════════
+// CHART DEFAULTS
+// ═══════════════════════════════════════
+if(typeof Chart !== 'undefined') {
+  Chart.defaults.color='#8b949e';
+  Chart.defaults.borderColor='rgba(255,255,255,0.07)';
+  Chart.defaults.font.family="'Sora', sans-serif";
+  Chart.defaults.font.size=11;
+}
+
+function chartOpts(bar=false) {
+  return {responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{grid:{display:false},ticks:{color:'#8b949e'}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8b949e',callback:vv=>fmt(vv)}}}};
+}
+
+function toast(msg) {
+  const t=document.getElementById('toast'); if(!t) return;
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+const uid  = () => Math.random().toString(36).slice(2,9);
+const v    = id => document.getElementById(id)?.value?.trim()||'';
+const ev   = id => document.getElementById(id)?.value?.trim()||'';
+const ef   = id => parseFloat(document.getElementById(id)?.value)||0;
+const set  = (id,val) => { const e=document.getElementById(id); if(e) e.value=val; };
+const clearIds = ids => ids.forEach(id=>set(id,''));
+function flash(id) { const e=document.getElementById(id); if(!e)return; e.style.borderColor='var(--coral)'; setTimeout(()=>e.style.borderColor='',1500); }
+
+function loadDemo() {
+  DB.income=[
+    {id:'a1',name:'Alex — Salary',amount:6500,type:'salary',growth:3,note:'after tax'},
+    {id:'a2',name:'Jordan — Salary',amount:4200,type:'salary',growth:3,note:'after tax'},
+    {id:'a3',name:'Investment Property Rent',amount:1800,type:'rental',growth:2,note:''},
+  ];
+  DB.expenses=[
+    {id:'b1',name:'Mortgage Repayment',amount:3200,cat:'housing',type:'fixed',growth:0},
+    {id:'b2',name:'Groceries',amount:900,cat:'food',type:'variable',growth:2.5},
+    {id:'b3',name:'School Fees',amount:600,cat:'education',type:'fixed',growth:4},
+    {id:'b4',name:'Utilities',amount:320,cat:'utilities',type:'variable',growth:3},
+    {id:'b5',name:'Health Insurance',amount:280,cat:'insurance',type:'fixed',growth:4},
+    {id:'b6',name:'Transport / Petrol',amount:350,cat:'transport',type:'variable',growth:2},
+    {id:'b7',name:'Entertainment & Dining',amount:500,cat:'entertainment',type:'discretionary',growth:2.5},
+    {id:'b8',name:'Subscriptions',amount:80,cat:'subscriptions',type:'fixed',growth:0},
+  ];
+  DB.assets=[
+    {id:'c1',name:'Family Home',value:780000,type:'property',ret:5,contrib:0,note:'est. value'},
+    {id:'c2',name:'Investment Property',value:620000,type:'investment_prop',ret:5,contrib:0,note:''},
+    {id:'c3',name:'Alex — Superannuation',value:95000,type:'super',ret:7,contrib:715,note:'AMP Balanced'},
+    {id:'c4',name:'Jordan — Superannuation',value:62000,type:'super',ret:7,contrib:462,note:''},
+    {id:'c5',name:'ETF Portfolio (ASX+S&P)',value:38000,type:'etf',ret:9,contrib:400,note:'Vanguard'},
+    {id:'c6',name:'Emergency Fund',value:22000,type:'savings',ret:4.5,contrib:200,note:'high-yield savings'},
+  ];
+  DB.debts=[
+    {id:'d1',name:'Home Mortgage',balance:540000,type:'mortgage',rate:5.9,repayment:3200,years:21},
+    {id:'d2',name:'Investment Property Loan',balance:480000,type:'investment_loan',rate:6.2,repayment:1800,years:24},
+    {id:'d3',name:'Car Loan',balance:18000,type:'car',rate:7.5,repayment:400,years:4},
+    {id:'d4',name:'Credit Card',balance:4200,type:'credit_card',rate:19.9,repayment:300,years:1},
+  ];
+  DB.goals=[
+    {id:'e1',name:'Emergency Fund (6 months)',target:40000,saved:22000,monthly:300,date:'2025-12-31',priority:'high'},
+    {id:'e2',name:"Kids' Education Fund",target:80000,saved:12000,monthly:500,date:'2033-01-01',priority:'high'},
+  ];
+  DB.plans=[
+    {id:'f1',name:'New Family Car',cost:45000,type:'purchase',year:2027,funding:'savings',note:''},
+    {id:'f2',name:'Kitchen Renovation',cost:35000,type:'renovation',year:2026,funding:'savings',note:''},
+  ];
+  renderIncome(); renderExpenses(); renderAssets(); renderDebts(); renderGoals(); renderPlans();
+  updateGlobals(); renderOverview(); toast('⚡ Demo data loaded');
+}
+
+// PENSION LOGIC
+const PEN = {
+  single_max_fn: 1096.70, couple_max_fn: 826.70,
+  single_income_free: 212, couple_income_free: 372,
+  single_income_cutoff: 2436.60, couple_income_cutoff: 3728.40,
+  single_asset_home: 301750, couple_asset_home: 451500,
+  single_asset_nohome: 543750, couple_asset_nohome: 693500,
+  single_asset_cutoff_home: 695500, single_asset_cutoff_nohome: 937500,
+  couple_asset_cutoff_home: 1045500, couple_asset_cutoff_nohome: 1287500,
+  deem_low_rate: 0.0025, deem_high_rate: 0.0225,
+  deem_single_thresh: 62600, deem_couple_thresh: 103800,
+  income_taper: 0.50, asset_taper: (1/250) * (1/26), qualifying_age: 67
+};
+
+function togglePartner() {
+  const status = gv('pen-status');
+  const partnerBlock = document.getElementById('pen-partner-block');
+  if (partnerBlock) partnerBlock.style.display = status === 'couple' ? 'block' : 'none';
+}
+
+function calcPension() {
+  const age = parseInt(gv('pen-age')) || 60;
+  const status = gv('pen-status');
+  const homeowner = gv('pen-homeowner') === 'yes';
+  const isSingle = status === 'single';
+  
+  const agePass = age >= PEN.qualifying_age;
+  setEl('pen-age-icon', agePass ? '✅' : '❌');
+  styleCard('pen-age-card', agePass ? 'mint' : 'coral');
+
+  const assessableAssets = DB.assets.filter(a => a.type !== 'property' && !(a.type === 'super' && age < 60)).reduce((s, x) => s + x.value, 0);
+  const assetLimit = homeowner ? (isSingle ? PEN.single_asset_home : PEN.couple_asset_home) : (isSingle ? PEN.single_asset_nohome : PEN.couple_asset_nohome);
+  const assetCutoff = homeowner ? (isSingle ? PEN.single_asset_cutoff_home : PEN.couple_asset_cutoff_home) : (isSingle ? PEN.single_asset_cutoff_nohome : PEN.couple_asset_cutoff_nohome);
+  const assetPass = assessableAssets <= assetCutoff;
+  styleCard('pen-assets-card', assetPass ? 'mint' : 'coral');
+
+  // Simplified calculation for demo purposes
+  const payFn = agePass && assetPass ? Math.max(0, (isSingle ? PEN.single_max_fn : PEN.couple_max_fn*2) - Math.max(0, assessableAssets-assetLimit)*PEN.asset_taper) : 0;
+  setEl('pen-fortnight', payFn > 0 ? fmtFn(payFn) : '—');
+}
+
+function gv(id) { return document.getElementById(id)?.value || ''; }
+function setEl(id, txt) { const e = document.getElementById(id); if (e) e.textContent = txt; }
+function setHTML(id, html) { const e = document.getElementById(id); if (e) e.innerHTML = html; }
+function fmtFn(v) { return '$' + Math.abs(v).toFixed(2); }
+function styleCard(id, color) { const e = document.getElementById(id); if (e) e.style.borderTop = `2px solid var(--${color})`; }
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('input[type=range]').forEach(updateTrack);
+  renderOverview();
+  togglePartner();
+});
+</script>
+</body>
+</html>
