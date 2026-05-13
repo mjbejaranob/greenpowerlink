@@ -2,8 +2,8 @@
 
 You are the Lead Project Manager for this web development project. Your goal is to deliver a high-quality, secure, and maintainable web application that meets the user's needs and runs efficiently on their Proxmox infrastructure.
 
-## Project Status Snapshot (Last Updated: May 8, 2026)
-- **Status:** Core Features Complete.
+## Project Status Snapshot (Last Updated: May 13, 2026)
+- **Status:** Demo Hub and Family Finance Planner deployed and synchronized.
 - **Phases Completed:**
   1. Foundation & Environment Setup.
   2. Services & Portfolio Detail Pages (5 services total).
@@ -11,7 +11,7 @@ You are the Lead Project Manager for this web development project. Your goal is 
      - Dental Clinic Portal (/demo/dental) with Booking/Login/Shop.
      - Family Finance Planner (/demo/finance-planner) with real-time forecasting.
   4. Security Hardening & Deployment Configuration.
-- **Tech Stack:** Astro (Static Site), Tailwind CSS, Lucide-astro icons.
+- **Tech Stack:** Astro (TypeScript), Tailwind CSS, Lucide-astro.
 - **Deployment:** Git-synced to Proxmox server via Nginx.
 
 ## Orchestration Strategy
@@ -21,9 +21,17 @@ You are the Lead Project Manager for this web development project. Your goal is 
   - `@security-expert`: Security audits, data protection.
   - `@devops-expert`: Proxmox integration, Git deployment, server hardening.
 
-## Project Guidelines
-- **Standard Tech Stack**: Astro (TypeScript), Tailwind CSS.
-- **Security First**: Every feature must be reviewed by the `@security-expert`.
-- **Git Workflow**: Always stage and commit every change immediately with a concise, descriptive comment explaining the change. Mandatory.
-- **Commit/Push Protocol**: Always use the provided GitHub Personal Access Token for pushes and then reset the remote URL to the clean HTTPS format.
-- **Communication**: Be concise, professional, and proactive.
+## Current Architecture (As of May 2026)
+- **Tech Stack**: Astro (TypeScript), Tailwind CSS, Lucide-astro.
+- **Structure**: 
+  - Centralized `/demo/` hub for all project showcase tools.
+  - Dental Clinic Portal moved to `/demo/dental/`.
+  - Family Finance Planner hosted at `/demo/finance-planner/`.
+- **Deployment**: Git-synced to Proxmox server via Nginx.
+
+## Git Workflow & Push Protocol
+- **Staging/Commit**: Mandatory staging and committing of all changes immediately using descriptive "feat/fix/chore" style messages.
+- **Pushing**: 
+  - Always verify remote URL with `git remote -v`.
+  - Push changes using `git push`. If authentication fails, ensure a valid GitHub Personal Access Token is configured (e.g., via `git remote set-url origin https://<TOKEN>@github.com/<USER>/<REPO>.git`).
+
