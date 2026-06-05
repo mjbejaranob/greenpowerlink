@@ -1,5 +1,6 @@
 ---
 import ServiceLayout from '../../layouts/ServiceLayout.astro';
+import { Target, Map, Cpu, Activity, CheckCircle } from 'lucide-astro';
 
 const features = [
   "Comprehensive Project Planning",
@@ -7,10 +8,69 @@ const features = [
   "Technical Coordination & Oversight",
   "Schedule & Resource Optimization"
 ];
+
+const phases = [
+  {
+    title: "Initiation",
+    icon: Target,
+    desc: "Defining project goals, scope, and initial feasibility analysis to set a solid foundation.",
+    color: "blue"
+  },
+  {
+    title: "Planning",
+    icon: Map,
+    desc: "Developing detailed roadmaps, resource allocation, and risk management strategies.",
+    color: "green"
+  },
+  {
+    title: "Execution",
+    icon: Cpu,
+    desc: "Mobilizing resources and technical experts to build deliverables according to the plan.",
+    color: "purple"
+  },
+  {
+    title: "Monitoring",
+    icon: Activity,
+    desc: "Continuous oversight of progress, quality control, and adjustment of resources as needed.",
+    color: "yellow"
+  },
+  {
+    title: "Closing",
+    icon: CheckCircle,
+    desc: "Finalizing all activities, ensuring quality handover, and conducting project retrospectives.",
+    color: "red"
+  }
+];
 ---
 
 <ServiceLayout 
   title="Project Management" 
   description="Engineering leadership for complex projects. I provide structured oversight, risk mitigation, and technical coordination to ensure your goals are met on time."
   features={features}
-/>
+>
+  <div class="mt-16">
+    <h2 class="text-3xl font-bold mb-10 text-center">Project Life Cycle Flow</h2>
+    
+    <div class="relative">
+      <!-- Connection Line (Desktop) -->
+      <div class="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-800 -translate-y-1/2 z-0"></div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-8 relative z-10">
+        {phases.map((phase, index) => (
+          <div class="flex flex-col items-center group">
+            <div class={`w-16 h-16 rounded-full bg-slate-900 border-2 border-slate-800 flex items-center justify-center mb-4 group-hover:border-${phase.color}-500 transition-all duration-300 relative bg-slate-950 shadow-[0_0_15px_rgba(0,0,0,0.5)]`}>
+              <phase.icon class={`w-8 h-8 text-${phase.color}-400`} />
+              <div class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-slate-800 text-[10px] font-bold flex items-center justify-center border border-slate-700">
+                {index + 1}
+              </div>
+            </div>
+            <h3 class="text-lg font-bold mb-2 text-white">{phase.title}</h3>
+            <p class="text-sm text-slate-400 text-center leading-relaxed">
+              {phase.desc}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</ServiceLayout>
