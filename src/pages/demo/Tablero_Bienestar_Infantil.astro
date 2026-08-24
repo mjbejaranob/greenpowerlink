@@ -49,10 +49,14 @@ nav.tabs button.active{color:var(--blue-dark);border-bottom-color:var(--teal);}
 main{padding:18px 22px 60px;max-width:1400px;margin:0 auto;}
 .tabpanel{display:none;}
 .tabpanel.active{display:block;}
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:20px;}
-.kpi{background:var(--card-bg);border-radius:12px;padding:14px 16px;border:1px solid var(--border);box-shadow:0 1px 2px rgba(0,0,0,.03);}
-.kpi .num{font-size:1.7rem;font-weight:800;line-height:1;}
-.kpi .lbl{font-size:.75rem;color:var(--muted);margin-top:6px;font-weight:600;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:20px;}
+.kpi{background:var(--card-bg);border-radius:12px;padding:12px 14px;border:1px solid var(--border);box-shadow:0 1px 2px rgba(0,0,0,.03);display:flex;flex-direction:column;justify-content:space-between;min-height:118px;}
+.kpi .num{font-size:2rem;font-weight:900;line-height:1.1;letter-spacing:-.02em;}
+.kpi .lbl{font-size:.72rem;color:var(--muted);margin-top:8px;font-weight:700;line-height:1.35;text-transform:none;}
+.kpi.crit{background:linear-gradient(180deg,#fff5f5,#fff);border-color:#fecaca;}
+.kpi.alto{background:linear-gradient(180deg,#fffaf0,#fff);border-color:#fed7aa;}
+.kpi.ok{background:linear-gradient(180deg,#f0fdf4,#fff);border-color:#bbf7d0;}
+.kpi.info{background:linear-gradient(180deg,#f8fbff,#fff);border-color:#bfdbfe;}
 .kpi.crit .num{color:var(--red);}
 .kpi.alto .num{color:var(--orange);}
 .kpi.ok .num{color:var(--green);}
@@ -87,6 +91,51 @@ main{padding:18px 22px 60px;max-width:1400px;margin:0 auto;}
 .case-detail .block p{margin:0;font-size:.86rem;}
 .indicator-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.8rem;}
 .indicator-table th,.indicator-table td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--border);}
+.indicator-section{margin-top:14px;border:1px solid #dbe4ec;border-radius:14px;background:#f7fafb;overflow:hidden;}
+.indicator-section > summary{list-style:none;cursor:pointer;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.indicator-section > summary::-webkit-details-marker{display:none;}
+.indicator-section > summary::after{content:'+';width:26px;height:26px;border-radius:8px;background:#dce9ed;color:#176b6b;display:grid;place-items:center;font-size:1.15rem;font-weight:800;}
+.indicator-section[open] > summary::after{content:'−';background:#176b6b;color:#fff;}
+.indicator-section-title{display:flex;align-items:center;gap:10px;min-width:0;}
+.indicator-section-icon{width:30px;height:30px;border-radius:9px;background:#176b6b;color:#fff;display:grid;place-items:center;font-size:.78rem;font-weight:900;box-shadow:0 4px 10px rgba(23,107,107,.2);}
+.indicator-section-title strong{display:block;color:#123b4a;font-size:.84rem;}
+.indicator-section-title small{display:block;color:#64748b;font-size:.68rem;margin-top:1px;}
+.indicator-count{border:1px solid #c5dadd;border-radius:999px;padding:5px 9px;color:#176b6b;background:rgba(255,255,255,.7);font-size:.68rem;font-weight:800;white-space:nowrap;}
+.indicator-content{padding:0 12px 12px;border-top:1px solid rgba(203,213,225,.7);}
+.indicator-legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 2px 0;color:#64748b;font-size:.63rem;font-weight:700;}
+.indicator-legend span{display:inline-flex;align-items:center;gap:4px;}
+.indicator-legend i{width:8px;height:8px;border-radius:50%;display:inline-block;}
+.indicator-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-top:8px;}
+.indicator-card{position:relative;background:#fff;border:1px solid #dce5ea;border-radius:9px;padding:7px 7px 6px;box-shadow:0 2px 5px rgba(15,23,42,.04);transition:transform .15s ease, box-shadow .15s ease;}
+.indicator-card:hover{transform:translateY(-1px);box-shadow:0 6px 14px rgba(15,23,42,.09);}
+.indicator-card::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;border-radius:12px 0 0 12px;}
+.indicator-card.level-0::before{background:#cbd5e1;}
+.indicator-card.level-1::before{background:#60a5fa;}
+.indicator-card.level-2::before{background:#f59e0b;}
+.indicator-card.level-3::before{background:#dc2626;}
+.indicator-card.missing{opacity:.72;}
+.indicator-card-inner{display:flex;gap:6px;align-items:center;}
+.indicator-number{flex:0 0 22px;width:22px;height:22px;border-radius:6px;background:#e8f0f2;color:#176b6b;display:grid;place-items:center;font-size:.56rem;font-weight:900;}
+.indicator-card.level-2 .indicator-number{background:#fff3d5;color:#a16207;}
+.indicator-card.level-3 .indicator-number{background:#fee2e2;color:#b91c1c;}
+.indicator-card.missing .indicator-number{background:#eef2f7;color:#64748b;}
+.indicator-card-body{min-width:0;flex:1;}
+.indicator-head{display:flex;justify-content:space-between;align-items:center;gap:5px;margin-bottom:0;}
+.indicator-label{font-size:.64rem;font-weight:800;color:#334155;line-height:1.15;letter-spacing:0;}
+.indicator-meta{display:none;}
+.indicator-score{display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:21px;border-radius:6px;font-size:.62rem;font-weight:900;color:#fff;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12);}
+.indicator-score.level-0{background:linear-gradient(180deg,#e2e8f0,#cbd5e1);color:#475569;}
+.indicator-score.level-1{background:linear-gradient(180deg,#60a5fa,#3b82f6);}
+.indicator-score.level-2{background:linear-gradient(180deg,#fbbf24,#f59e0b);}
+.indicator-score.level-3{background:linear-gradient(180deg,#ef4444,#dc2626);}
+.indicator-bar{height:4px;border-radius:999px;background:#edf2f7;overflow:hidden;margin-top:5px;}
+.indicator-bar > span{display:block;height:100%;border-radius:inherit;}
+.indicator-bar.level-0 > span{width:0%;background:linear-gradient(90deg,#cbd5e1,#94a3b8);}
+.indicator-bar.level-1 > span{width:33%;background:linear-gradient(90deg,#93c5fd,#3b82f6);}
+.indicator-bar.level-2 > span{width:66%;background:linear-gradient(90deg,#fcd34d,#f59e0b);}
+.indicator-bar.level-3 > span{width:100%;background:linear-gradient(90deg,#fca5a5,#dc2626);}
+@media(max-width:900px){.indicator-grid{grid-template-columns:repeat(3,minmax(0,1fr)) !important;}}
+@media(max-width:560px){.indicator-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}.indicator-section > summary{padding:10px 11px;}.indicator-count{display:none;}}
 .action-box{margin-top:12px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 12px;}
 .action-box.crit{background:var(--red-bg);border-color:#fecaca;}
 .action-box strong{display:block;margin-bottom:2px;}
@@ -187,7 +236,6 @@ details.help-box ol,details.help-box ul{font-size:.87rem;line-height:1.5;color:v
     <div class="kpi-grid" id="kpiGrid"></div>
     <div class="charts-grid" id="chartsGrid">
       <div class="chart-card full"><h3>🚦 Nivel de urgencia (según plazo de acción recomendado)</h3><div class="wrap"><canvas id="chartUrgencia"></canvas></div></div>
-      <div class="chart-card"><h3>Indicador de riesgo general</h3><div class="wrap"><canvas id="chartIndicador"></canvas></div></div>
       <div class="chart-card"><h3>Perfil operativo</h3><div class="wrap"><canvas id="chartPerfil"></canvas></div></div>
       <div class="chart-card"><h3>Malestar combinado</h3><div class="wrap"><canvas id="chartCombinado"></canvas></div></div>
       <div class="chart-card"><h3>Reintegración y permanencia escolar</h3><div class="wrap"><canvas id="chartReintegra"></canvas></div></div>
@@ -234,7 +282,7 @@ details.help-box ol,details.help-box ul{font-size:.87rem;line-height:1.5;color:v
 const CONFIG = {
   EXPECTED_FILENAME: "IBITE Manizales (respuestas).xlsx",
   SHEET_NAME: "Puntuaciones",
-  STORAGE_KEY: "ibite_dashboard_cache::Manizales_v1"
+  STORAGE_KEY: "ibite_dashboard_cache::Manizales_v2"
 };
 document.getElementById('expectedFilename').textContent = CONFIG.EXPECTED_FILENAME;
 
@@ -258,6 +306,17 @@ const COL = {
 const INDICATOR_LABELS = ["Intrusión","Pesadillas/sueño","Evitación","Hiperalerta","Malestar general","Funcionamiento",
 "Ideación (seguridad)","Autolesión (seguridad)","Miedo/rechazo escolar","Concentración","Ausentismo",
 "Autorregulación","Disfrute","Búsqueda de ayuda","Contención familiar","Sobrecarga parental (inv.)","Red de apoyo"];
+
+function indicatorHeaderMatch(header, number){
+  const value=headerKey(String(header ?? '').replace(/[\u200B-\u200D\uFEFF]/g,''));
+  const compact=headerCompact(header);
+  const label=headerKey(INDICATOR_LABELS[number-1] || '');
+  if(compact===`i${number}` || compact===`item${number}` || compact===`indicador${number}`) return 1;
+  const numberMatch=value.match(/(?:^|\s)(?:i|item|indicador)\s*[^0-9\s]*0?([0-9]{1,2})(?:\s|$)/);
+  if(numberMatch && Number(numberMatch[1])===number) return .98;
+  if(label && (value===label || value.startsWith(label+' ') || value.includes(' '+label))) return .9;
+  return 0;
+}
 
 const URGENCY_META = {
  0:{label:'Prioridad máxima — actuar hoy mismo', short:'Hoy mismo', color:'#dc2626', bg:'#fee2e2'},
@@ -400,8 +459,8 @@ const IBITE_FIELDS = {
   POSTRAUM_NIVEL: {label:'Nivel postraumático', required:false, aliases:['postraum nivel','nivel postraumatico','nivel postraumático']},
   GENFUNC_SCORE: {label:'Puntaje de funcionamiento general', required:false, aliases:['genfunc score','funcionamiento general score','puntaje funcionamiento general']},
   DETERIORO_FLAG: {label:'Deterioro funcional', required:false, aliases:['deterioro flag','deterioro funcional','deterioro']},
-  COMBINADO_SCORE: {label:'Puntaje combinado', required:false, aliases:['combinado score','puntaje combinado']},
-  COMBINADO_NIVEL: {label:'Nivel combinado', required:false, aliases:['combinado nivel','nivel combinado']},
+  COMBINADO_SCORE: {label:'Puntaje combinado', required:false, aliases:['combinado score','puntaje combinado','malestar combinado','malestar combinado 0 18']},
+  COMBINADO_NIVEL: {label:'Nivel combinado', required:false, aliases:['combinado nivel','nivel combinado','nivel malestar combinado']},
   ALERTA_SEGURIDAD: {label:'Alerta de seguridad', required:false, aliases:['alerta seguridad','alerta de seguridad','seguridad','alerta']},
   REINTEGRA_SCORE: {label:'Puntaje de reintegración', required:false, aliases:['reintegra score','puntaje reintegra','puntaje reintegracion','puntaje reintegración']},
   REINTEGRA_NIVEL: {label:'Nivel de reintegración', required:false, aliases:['reintegra nivel','nivel reintegra','nivel reintegracion','nivel reintegración']},
@@ -466,17 +525,17 @@ function autoMapHeaders(headers){
     }
   });
 
-  // Indicators are a special group: detect I1..I17 independently.
+  // Indicators are a special group: accept I1, Item 1, Indicador 1,
+  // numbered descriptions such as "I1. Intrusión", or the indicator name.
   for(let k=1;k<=17;k++){
     const field='I'+k;
     let best={idx:-1,score:0};
     headers.forEach((h,idx)=>{
       if(used.has(idx)) return;
-      const n=headerCompact(h);
-      const score=(n===field || n===('indicador'+k) || n===('item'+k) || n===('i'+k)) ? 1 : 0;
+      const score=indicatorHeaderMatch(h,k);
       if(score>best.score) best={idx,score};
     });
-    if(best.idx>=0){
+    if(best.idx>=0 && best.score>=.9){
       map[field]=best.idx; confidence[field]=best.score; used.add(best.idx);
     }
   }
@@ -983,7 +1042,7 @@ function getFilteredCases(){
 /* =========================================================
    RENDER — TAB 1 (Resumen general)
    ========================================================= */
-function kpiCard(cls, num, lbl){
+function kpiCard(cls, num, lbl, suffix=''){
   const colorMap = {
     info: { bg: '#ffffff', border: '#e2e8f0', num: '#0b5b8c' },
     ok: { bg: '#ffffff', border: '#dcfce7', num: '#16a34a' },
@@ -991,33 +1050,45 @@ function kpiCard(cls, num, lbl){
     alto: { bg: '#ffffff', border: '#fed7aa', num: '#ea580c' }
   };
   const palette = colorMap[cls] || colorMap.info;
+  const displayValue = suffix ? `${num}${suffix}` : num;
   return `
     <div class="kpi ${cls}" style="background:${palette.bg};border:1px solid ${palette.border};border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,.03);">
-      <div class="num" style="font-size:1.7rem;font-weight:800;line-height:1;color:${palette.num};">${num}</div>
+      <div class="num" style="font-size:1.7rem;font-weight:800;line-height:1;color:${palette.num};">${displayValue}</div>
       <div class="lbl" style="font-size:.75rem;color:#64748b;margin-top:6px;font-weight:600;">${lbl}</div>
     </div>
   `;
 }
 
+function generalRiskLevel(value){
+  const text=normalize(value);
+  if(!text) return '(Sin dato)';
+  if(text.includes('crit')) return 'Crítico';
+  if(text.includes('alto')) return 'Alto';
+  if(text.includes('moderado') || text.includes('intermedio')) return 'Moderado';
+  if(text.includes('bajo')) return 'Bajo';
+  return String(value);
+}
+
 function renderKPIs(cases){
   const total = cases.length;
-  const completos = cases.filter(c=>isFlagYes(c.cuestionarioCompleto)).length;
-  const alertas = cases.filter(c=>alertaClass(c.alertaSeguridad)!=='ninguna').length;
-  const materialGrave = cases.filter(c=>isFlagYes(c.riesgoMaterial)).length;
-  const deterioro = cases.filter(c=>isFlagYes(c.deterioroFlag)).length;
-  const desescolar = cases.filter(c=>isFlagYes(c.desescolarFlag)).length;
-  const perfil3 = cases.filter(c=>normalize(c.perfil).startsWith('3')).length;
-  const criticos = cases.filter(c=>computeUrgency(c)===0).length;
+  const criticos = cases.filter(c => computeUrgency(c) === 0).length;
+  const seguridadActiva = cases.filter(c => alertaClass(c.alertaSeguridad) === 'activa').length;
+  const seguridadNoAclarada = cases.filter(c => alertaClass(c.alertaSeguridad) === 'no_aclarada').length;
+  const riesgoMaterial = cases.filter(c => isFlagYes(c.riesgoMaterial)).length;
+  const deterioroFuncional = cases.filter(c => isFlagYes(c.deterioroFlag)).length;
+  const desescolarizacion = cases.filter(c => isFlagYes(c.desescolarFlag)).length;
+  const perfil3 = cases.filter(c => normalize(c.perfil).startsWith('3')).length;
+  const incompletos = cases.filter(c => !isFlagYes(c.cuestionarioCompleto)).length;
 
   const html = [
-    kpiCard('info', total, 'Total de casos con cuestionario iniciado'),
-    kpiCard('ok', completos, 'Cuestionarios completos'),
-    kpiCard('crit', criticos, 'Casos críticos (acción hoy)'),
-    kpiCard('crit', alertas, 'Alertas de seguridad (Í7/Í8)'),
-    kpiCard('alto', materialGrave, 'Riesgo material grave (vivienda/desplazamiento)'),
-    kpiCard('alto', deterioro, 'Bandera de deterioro funcional'),
-    kpiCard('alto', desescolar, 'Bandera de desescolarización'),
-    kpiCard('alto', perfil3, 'Perfil 3 — Vulnerabilidad global'),
+    kpiCard('info', total, 'Total de registros'),
+    kpiCard('crit', seguridadActiva, 'Alertas de seguridad (I7/I8)'),
+    kpiCard('alto', seguridadNoAclarada, 'Seguridad no aclarada'),
+    kpiCard('alto', riesgoMaterial, 'Riesgo material grave'),
+    kpiCard('alto', deterioroFuncional, 'Bandera deterioro funcional'),
+    kpiCard('alto', desescolarizacion, 'Bandera desescolarización'),
+    kpiCard('info', perfil3, 'Vulnerabilidad global'),
+    kpiCard('ok', incompletos, 'Cuestionarios incompletos'),
   ].join('');
   document.getElementById('kpiGrid').innerHTML = html;
 }
@@ -1041,7 +1112,6 @@ function renderCharts(cases){
     options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}} }
   });
 
-  simpleCountChart('chartIndicador','doughnut', cases, c=>c.indicadorGeneral, {colorByRank: classifyIndicador});
   simpleCountChart('chartPerfil','bar', cases, c=>c.perfil, {});
   simpleCountChart('chartCombinado','bar', cases, c=>c.combinadoNivel, {});
   simpleCountChart('chartReintegra','bar', cases, c=>c.reintegraNivel, {});
@@ -1073,11 +1143,29 @@ function simpleCountChart(id, type, cases, keyFn, opts){
   } else {
     colors = labels.map((_,i)=>PALETTE[i%PALETTE.length]);
   }
+  const total = data.reduce((sum,value)=>sum+value,0);
   makeChart(id, {
     type: type==='doughnut' ? 'doughnut' : 'bar',
     data:{ labels, datasets:[{ data, backgroundColor:colors }] },
     options: type==='doughnut'
-      ? { plugins:{legend:{position:'right', labels:{boxWidth:12,font:{size:10}}}} }
+      ? { plugins:{
+          legend:{position:'right', labels:{boxWidth:12,font:{size:10},generateLabels(chart){
+            const original=Chart.defaults.plugins.legend.labels.generateLabels(chart);
+            return original.map(item=>{
+              const itemIndex=Number.isInteger(item.index) ? item.index : labels.indexOf(item.text);
+              const itemValue=Number(data[itemIndex]) || 0;
+              return {
+                ...item,
+                text: opts.showPercent ? `${item.text || 'Sin categoría'} · ${total ? Math.round((itemValue/total)*100) : 0}%` : (item.text || 'Sin categoría')
+              };
+            });
+          }}},
+          tooltip:{callbacks:{label(context){
+            const value=Number(context.raw ?? context.parsed) || 0;
+            const percent=total ? Math.round((value/total)*100) : 0;
+            return ` ${context.label || 'Sin categoría'}: ${value} casos (${percent}%)`;
+          }}}
+        }}
       : { indexAxis: opts.horizontal ? 'y' : 'x', plugins:{legend:{display:false}}, scales:{ [opts.horizontal?'x':'y']:{beginAtZero:true, ticks:{precision:0}} } }
   });
 }
@@ -1131,9 +1219,26 @@ function renderCaseList(cases){
     if(isFlagYes(c.necesidadesBasicas)) badges.push(badgeOutline('Necesidades básicas afectadas'));
     if(!isFlagYes(c.cuestionarioCompleto)) badges.push(badgeOutline('Cuestionario incompleto'));
 
-    const indicatorRows = INDICATOR_LABELS.map((lbl,i)=>{
+    const indicatorCards = INDICATOR_LABELS.map((lbl,i)=>{
       const v = c.ind[i+1];
-      return `<tr><td>Í${i+1} ${lbl}</td><td>${v===null||v===undefined?'—':v}</td></tr>`;
+      const score = Number.isFinite(v) ? Math.max(0, Math.min(3, Number(v))) : null;
+      const display = score===null ? '—' : score;
+      const level = score===null ? 'missing' : `level-${score}`;
+      const barClass = score===null ? 'missing' : `level-${score}`;
+      return `
+        <div class="indicator-card ${level}" style="display:flex;min-width:0;min-height:48px;align-items:center;background:#fff;border:1px solid #dce5ea;border-radius:9px;padding:7px;box-shadow:0 2px 5px rgba(15,23,42,.04);">
+          <div class="indicator-card-inner">
+            <span class="indicator-number">${String(i+1).padStart(2,'0')}</span>
+            <div class="indicator-card-body" style="min-width:0;flex:1;">
+              <div class="indicator-head">
+                <span class="indicator-label">${lbl}</span>
+                <span class="indicator-score ${level}" aria-label="Puntaje ${display}">${display}</span>
+              </div>
+              <div class="indicator-bar ${barClass}"><span></span></div>
+            </div>
+          </div>
+        </div>
+      `;
     }).join('');
 
     return `<details class="case-card" style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;border-left:6px solid ${meta.color};overflow:hidden;">
@@ -1165,9 +1270,23 @@ function renderCaseList(cases){
           <div class="block" style="background:#eef1f4;border-radius:8px;padding:10px 12px;"><h4 style="margin:0 0 4px;font-size:.75rem;text-transform:uppercase;color:#64748b;letter-spacing:.03em;">Recursos familiares</h4><p style="margin:0;font-size:.86rem;">${c.recursosFamScore!==null?c.recursosFamScore+'/9 · ':''}${escapeHtml(c.recursosFamNivel||'—')}</p></div>
           <div class="block" style="background:#eef1f4;border-radius:8px;padding:10px 12px;"><h4 style="margin:0 0 4px;font-size:.75rem;text-transform:uppercase;color:#64748b;letter-spacing:.03em;">Contexto material</h4><p style="margin:0;font-size:.86rem;">Vivienda: ${escapeHtml(c.danosVivienda||'—')}<br>Salida temporal: ${escapeHtml(c.salidaVivienda||'—')}<br>Dificultades de servicios: ${escapeHtml(c.dificultadesServ||'—')}</p></div>
         </div>
-        <details style="margin-top:10px;">
-          <summary style="cursor:pointer;font-size:.82rem;color:#64748b;">Ver los 17 indicadores IBITE-17</summary>
-          <table class="indicator-table" style="width:100%;border-collapse:collapse;margin-top:10px;font-size:.8rem;"><tbody>${indicatorRows}</tbody></table>
+        <details class="indicator-section">
+          <summary>
+            <span class="indicator-section-title">
+              <span class="indicator-section-icon">17</span>
+              <span><strong>Perfil de indicadores IBITE-17</strong><small>Lectura rápida de señales por dominio</small></span>
+            </span>
+            <span class="indicator-count">17 indicadores</span>
+          </summary>
+          <div class="indicator-content">
+            <div class="indicator-legend" aria-label="Leyenda de niveles">
+              <span><i style="background:#cbd5e1"></i>Sin señal</span>
+              <span><i style="background:#60a5fa"></i>Leve</span>
+              <span><i style="background:#f59e0b"></i>Moderada</span>
+              <span><i style="background:#dc2626"></i>Alta</span>
+            </div>
+            <div class="indicator-grid" style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-top:8px;">${indicatorCards}</div>
+          </div>
         </details>
         ${c.accionesEspecificas ? `<div class="action-box" style="margin-top:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 12px;"><strong style="display:block;margin-bottom:2px;">Acciones específicas por señal</strong>${escapeHtml(c.accionesEspecificas)}</div>` : ''}
       </div>

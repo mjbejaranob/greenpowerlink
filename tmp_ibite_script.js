@@ -754,7 +754,7 @@ function getFilteredCases(){
 /* =========================================================
    RENDER — TAB 1 (Resumen general)
    ========================================================= */
-function kpiCard(cls, num, lbl){
+function kpiCard(cls, num, lbl, suffix=''){
   const colorMap = {
     info: { bg: '#ffffff', border: '#e2e8f0', num: '#0b5b8c' },
     ok: { bg: '#ffffff', border: '#dcfce7', num: '#16a34a' },
@@ -762,9 +762,10 @@ function kpiCard(cls, num, lbl){
     alto: { bg: '#ffffff', border: '#fed7aa', num: '#ea580c' }
   };
   const palette = colorMap[cls] || colorMap.info;
+  const displayValue = suffix ? `${num}${suffix}` : num;
   return `
     <div class="kpi ${cls}" style="background:${palette.bg};border:1px solid ${palette.border};border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,.03);">
-      <div class="num" style="font-size:1.7rem;font-weight:800;line-height:1;color:${palette.num};">${num}</div>
+      <div class="num" style="font-size:1.7rem;font-weight:800;line-height:1;color:${palette.num};">${displayValue}</div>
       <div class="lbl" style="font-size:.75rem;color:#64748b;margin-top:6px;font-weight:600;">${lbl}</div>
     </div>
   `;
@@ -779,16 +780,17 @@ function renderKPIs(cases){
   const desescolar = cases.filter(c=>isFlagYes(c.desescolarFlag)).length;
   const perfil3 = cases.filter(c=>normalize(c.perfil).startsWith('3')).length;
   const criticos = cases.filter(c=>computeUrgency(c)===0).length;
+  const tasaCompletitud = total ? Math.round((completos / total) * 100) : 0;
 
   const html = [
-    kpiCard('info', total, 'Total de casos con cuestionario iniciado'),
-    kpiCard('ok', completos, 'Cuestionarios completos'),
-    kpiCard('crit', criticos, 'Casos críticos (acción hoy)'),
+    kpiCard('info', total, 'Casos iniciados'),
+    kpiCard('crit', criticos, 'Prioridad máxima · acción hoy'),
     kpiCard('crit', alertas, 'Alertas de seguridad (Í7/Í8)'),
-    kpiCard('alto', materialGrave, 'Riesgo material grave (vivienda/desplazamiento)'),
-    kpiCard('alto', deterioro, 'Bandera de deterioro funcional'),
-    kpiCard('alto', desescolar, 'Bandera de desescolarización'),
-    kpiCard('alto', perfil3, 'Perfil 3 — Vulnerabilidad global'),
+    kpiCard('ok', `${tasaCompletitud}%`, 'Completitud del cuestionario', ''),
+    kpiCard('alto', materialGrave, 'Riesgo material grave'),
+    kpiCard('alto', deterioro, 'Deterioro funcional'),
+    kpiCard('alto', desescolar, 'Desescolarización'),
+    kpiCard('alto', perfil3, 'Vulnerabilidad global (perfil 3)'),
   ].join('');
   document.getElementById('kpiGrid').innerHTML = html;
 }
