@@ -4,26 +4,39 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout title="GreenPowerLink | Contact Us">
   <main class="min-h-screen bg-slate-950 text-slate-100 font-sans p-8 md:p-16 max-w-2xl mx-auto">
-    <a href="/" class="text-blue-400 hover:text-blue-300 font-bold mb-8 inline-block">← Back to Main Site</a>
-    <h1 class="text-4xl font-extrabold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-green-400">Get in Touch</h1>
-    
-    <form action="https://formspree.io/f/mnqeolqe" method="POST" class="space-y-6 bg-slate-900/50 p-8 rounded-3xl border border-slate-700 backdrop-blur-sm">
-      <input type="hidden" name="_subject" value="New GreenPowerLink Inquiry" />
-      <div>
-        <label class="block mb-2 text-sm font-semibold text-slate-300">Your Name</label>
-        <input type="text" name="name" required class="w-full bg-slate-950 p-4 rounded-xl border border-slate-700 focus:border-green-500 outline-none transition-all" />
-      </div>
-      <div>
-        <label class="block mb-2 text-sm font-semibold text-slate-300">Email Address</label>
-        <input type="email" name="email" required class="w-full bg-slate-950 p-4 rounded-xl border border-slate-700 focus:border-green-500 outline-none transition-all" />
-      </div>
-      <div>
-        <label class="block mb-2 text-sm font-semibold text-slate-300">Message</label>
-        <textarea name="message" rows="4" required class="w-full bg-slate-950 p-4 rounded-xl border border-slate-700 focus:border-green-500 outline-none transition-all"></textarea>
-      </div>
-      <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-green-600 py-4 rounded-xl text-white font-bold transition-all shadow-lg hover:shadow-blue-900/50">
-        Send Message
-      </button>
-    </form>
+
+    <a href="/" class="text-blue-400 hover:text-blue-300 font-bold mb-8 inline-block">
+      ← Back to Main Site
+    </a>
+
+    <h1 class="text-4xl font-extrabold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-green-400">
+      Get in Touch
+    </h1>
+
+    <!-- ⭐ DIRECT CONTACT SECTION -->
+    <div class="bg-slate-900/40 p-6 rounded-2xl border border-slate-800 mb-10">
+      <h2 class="text-xl font-bold mb-4 text-blue-300">Direct Contact</h2>
+
+      <p class="mb-3 text-slate-300">
+        <span class="font-semibold">Email:</span>
+        <a href="mailto:mjbejaranob@gmail.com" class="text-green-400 hover:text-green-300 underline">
+          mjbejaranob@gmail.com
+        </a>
+      </p>
+
+      <p class="text-slate-300">
+        <span class="font-semibold">Phone:</span>
+        <a href="tel:+61416868212" class="text-green-400 hover:text-green-300 underline">
+          +61 416 868 212
+        </a>
+      </p>
+    </div>
+
+    <!-- ⭐ OPTIONAL MESSAGE -->
+    <p class="text-slate-400 leading-relaxed">
+      For any inquiries, feedback, or collaboration opportunities,
+      feel free to reach out directly using the contact details above. I’ll get back to you as soon as possible.
+    </p>
+
   </main>
 </Layout>

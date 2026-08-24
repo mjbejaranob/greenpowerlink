@@ -1,256 +1,279 @@
----
-/* Astro page — no component wrapper needed */
----
+<!DOCTYPE html>
+<html lang="en" data-astro-cid-2beynvq5>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Print Cost Calculator</title>
 
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>3D Print Cost Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  </head>
+<style>
+:root{
+  --bg: #f5f7fa;
+  --card: #ffffff;
+  --border: #e2e6ea;
+  --text: #1a1d21;
+  --text2: #6c737c;
+  --accent: #0095e8;
+  --radius: 14px;
+  --ff: "Sora", sans-serif;
+  --mono: "JetBrains Mono", monospace;
+}
 
-  <body>
-    <div class="wrapper">
-      <h1>3D Print Cost Calculator</h1>
-      <p class="sub">Accurate cost estimation for professional 3D printing workflows</p>
+body{
+  background:var(--bg);
+  font-family:var(--ff);
+}
 
-      <!-- Electricity -->
-      <fieldset class="card">
-        <legend>Printer & Electricity</legend>
+.wrapper[data-astro-cid-2beynvq5]{
+  max-width:900px;
+  margin:auto;
+  padding:2rem;
+}
 
-        <label>
-          Average printer power (W)
-          <input type="number" id="powerW" value="200">
+h1[data-astro-cid-2beynvq5]{
+  font-size:2rem;
+  font-weight:700;
+  margin-bottom:.4rem;
+}
+
+.sub[data-astro-cid-2beynvq5]{
+  color:var(--text2);
+  margin-bottom:2rem;
+}
+
+.card[data-astro-cid-2beynvq5]{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:1.8rem 2rem;
+  margin-bottom:1.5rem;
+  box-shadow:0 4px 14px #0000000a;
+}
+
+legend[data-astro-cid-2beynvq5]{
+  font-size:1.05rem;
+  font-weight:600;
+  color:var(--accent);
+  margin-bottom:1rem;
+}
+
+label[data-astro-cid-2beynvq5]{
+  display:block;
+  margin:.65rem 0;
+  font-size:.9rem;
+}
+
+input[data-astro-cid-2beynvq5]{
+  margin-top:.25rem;
+  width:160px;
+  padding:.55rem .7rem;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:#fdfdfd;
+  font-family:var(--mono);
+  font-size:.9rem;
+}
+
+input[data-astro-cid-2beynvq5]:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px #0095e833;
+}
+
+.row[data-astro-cid-2beynvq5]{
+  display:flex;
+  gap:2rem;
+  flex-wrap:wrap;
+}
+
+button[data-astro-cid-2beynvq5]{
+  background:var(--accent);
+  color:#fff;
+  font-weight:600;
+  border:none;
+  padding:.9rem 1.8rem;
+  border-radius:10px;
+  font-size:1rem;
+  cursor:pointer;
+  margin-top:.5rem;
+}
+
+button[data-astro-cid-2beynvq5]:hover{
+  background:#1ab8ff;
+}
+
+.result[data-astro-cid-2beynvq5]{
+  margin-top:1rem;
+  padding:1rem 1.2rem;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  font-family:var(--mono);
+  box-shadow:0 4px 14px #0000000a;
+}
+
+/* Back to demos link */
+.back-link {
+  display: inline-flex;
+  margin-top: 2rem;
+  font-size: 0.9rem;
+  color: var(--text2);
+  text-decoration: none;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.back-link:hover {
+  color: var(--accent);
+}
+</style>
+</head>
+
+<body data-astro-cid-2beynvq5>
+
+<div class="wrapper" data-astro-cid-2beynvq5>
+
+  <h1 data-astro-cid-2beynvq5>3D Print Cost Calculator</h1>
+  <p class="sub" data-astro-cid-2beynvq5>Accurate cost estimation for professional 3D printing workflows</p>
+
+  <!-- Electricity -->
+  <fieldset class="card" data-astro-cid-2beynvq5>
+    <legend data-astro-cid-2beynvq5>Printer & Electricity</legend>
+
+    <label data-astro-cid-2beynvq5>
+      Average printer power (W)
+      <input type="number" id="powerW" value="200" data-astro-cid-2beynvq5>
+    </label>
+
+    <label data-astro-cid-2beynvq5>
+      Print time (hours)
+      <input type="number" id="hours" value="10" step="0.1" data-astro-cid-2beynvq5>
+    </label>
+
+    <label data-astro-cid-2beynvq5>
+      Electricity price ($ per kWh)
+      <input type="number" id="kwhPrice" value="0.30" step="0.01" data-astro-cid-2beynvq5>
+    </label>
+  </fieldset>
+
+  <!-- Maintenance -->
+  <fieldset class="card" data-astro-cid-2beynvq5>
+    <legend data-astro-cid-2beynvq5>Maintenance Cost</legend>
+
+    <label data-astro-cid-2beynvq5>
+      Maintenance cost per hour ($)
+      <input type="number" id="maint" value="0.50" step="0.1" data-astro-cid-2beynvq5>
+    </label>
+  </fieldset>
+
+  <!-- Filament -->
+  <fieldset class="card" data-astro-cid-2beynvq5>
+    <legend data-astro-cid-2beynvq5>Filament (up to 4 colours)</legend>
+
+    <div class="row" data-astro-cid-2beynvq5>
+
+      <div data-astro-cid-2beynvq5>
+        <strong data-astro-cid-2beynvq5>Colour 1</strong>
+        <label data-astro-cid-2beynvq5>Weight (g)
+          <input type="number" id="w1" value="255" data-astro-cid-2beynvq5>
         </label>
-
-        <label>
-          Print time (hours)
-          <input type="number" id="hours" value="10" step="0.1">
+        <label data-astro-cid-2beynvq5>Price ($/kg)
+          <input type="number" id="p1" value="21" step="0.1" data-astro-cid-2beynvq5>
         </label>
+      </div>
 
-        <label>
-          Electricity price ($ per kWh)
-          <input type="number" id="kwhPrice" value="0.30" step="0.01">
+      <div data-astro-cid-2beynvq5>
+        <strong data-astro-cid-2beynvq5>Colour 2</strong>
+        <label data-astro-cid-2beynvq5>Weight (g)
+          <input type="number" id="w2" value="0" data-astro-cid-2beynvq5>
         </label>
-      </fieldset>
-
-      <!-- Maintenance -->
-      <fieldset class="card">
-        <legend>Maintenance Cost</legend>
-
-        <label>
-          Maintenance cost per hour ($)
-          <input type="number" id="maint" value="0.50" step="0.1">
+        <label data-astro-cid-2beynvq5>Price ($/kg)
+          <input type="number" id="p2" value="21" step="0.1" data-astro-cid-2beynvq5>
         </label>
-      </fieldset>
+      </div>
 
-      <!-- Filament -->
-      <fieldset class="card">
-        <legend>Filament (up to 4 colours)</legend>
+      <div data-astro-cid-2beynvq5>
+        <strong data-astro-cid-2beynvq5>Colour 3</strong>
+        <label data-astro-cid-2beynvq5>Weight (g)
+          <input type="number" id="w3" value="0" data-astro-cid-2beynvq5>
+        </label>
+        <label data-astro-cid-2beynvq5>Price ($/kg)
+          <input type="number" id="p3" value="21" step="0.1" data-astro-cid-2beynvq5>
+        </label>
+      </div>
 
-        <div class="row">
-          <div>
-            <strong>Colour 1</strong>
-            <label>Weight (g)
-              <input type="number" id="w1" value="255">
-            </label>
-            <label>Price ($/kg)
-              <input type="number" id="p1" value="21" step="0.1">
-            </label>
-          </div>
+      <div data-astro-cid-2beynvq5>
+        <strong data-astro-cid-2beynvq5>Colour 4</strong>
+        <label data-astro-cid-2beynvq5>Weight (g)
+          <input type="number" id="w4" value="0" data-astro-cid-2beynvq5>
+        </label>
+        <label data-astro-cid-2beynvq5>Price ($/kg)
+          <input type="number" id="p4" value="21" step="0.1" data-astro-cid-2beynvq5>
+        </label>
+      </div>
 
-          <div>
-            <strong>Colour 2</strong>
-            <label>Weight (g)
-              <input type="number" id="w2" value="0">
-            </label>
-            <label>Price ($/kg)
-              <input type="number" id="p2" value="21" step="0.1">
-            </label>
-          </div>
-
-          <div>
-            <strong>Colour 3</strong>
-            <label>Weight (g)
-              <input type="number" id="w3" value="0">
-            </label>
-            <label>Price ($/kg)
-              <input type="number" id="p3" value="21" step="0.1">
-            </label>
-          </div>
-
-          <div>
-            <strong>Colour 4</strong>
-            <label>Weight (g)
-              <input type="number" id="w4" value="0">
-            </label>
-            <label>Price ($/kg)
-              <input type="number" id="p4" value="21" step="0.1">
-            </label>
-          </div>
-        </div>
-      </fieldset>
-
-      <button id="runCalc">Calculate</button>
-
-      <div class="result" id="filamentCost"></div>
-      <div class="result" id="electricCost"></div>
-      <div class="result" id="maintCost"></div>
-      <div class="result" id="totalCost"></div>
     </div>
+  </fieldset>
 
-    <script type="module" client:load>
-      function filamentCost(weightG, priceKg) {
-        return (weightG / 1000) * priceKg;
-      }
+  <button id="runCalc" data-astro-cid-2beynvq5>Calculate</button>
 
-      document.getElementById("runCalc").addEventListener("click", () => {
-        const powerW   = parseFloat(document.getElementById('powerW').value) || 0;
-        const hours    = parseFloat(document.getElementById('hours').value) || 0;
-        const kwhPrice = parseFloat(document.getElementById('kwhPrice').value) || 0;
-        const maint    = parseFloat(document.getElementById('maint').value) || 0;
+  <div class="result" id="filamentCost" data-astro-cid-2beynvq5></div>
+  <div class="result" id="electricCost" data-astro-cid-2beynvq5></div>
+  <div class="result" id="maintCost" data-astro-cid-2beynvq5></div>
+  <div class="result" id="totalCost" data-astro-cid-2beynvq5></div>
 
-        const w1 = parseFloat(document.getElementById('w1').value) || 0;
-        const p1 = parseFloat(document.getElementById('p1').value) || 0;
-        const w2 = parseFloat(document.getElementById('w2').value) || 0;
-        const p2 = parseFloat(document.getElementById('p2').value) || 0;
-        const w3 = parseFloat(document.getElementById('w3').value) || 0;
-        const p3 = parseFloat(document.getElementById('p3').value) || 0;
-        const w4 = parseFloat(document.getElementById('w4').value) || 0;
-        const p4 = parseFloat(document.getElementById('p4').value) || 0;
+  <!-- ⭐ BACK TO DEMOS LINK -->
+  <a href="/demo" class="back-link">
+    ← Back to Demos
+  </a>
 
-        const filamentTotal =
-          filamentCost(w1, p1) +
-          filamentCost(w2, p2) +
-          filamentCost(w3, p3) +
-          filamentCost(w4, p4);
+</div>
 
-        const kWhUsed = (powerW * hours) / 1000;
-        const electricTotal = kWhUsed * kwhPrice;
-        const maintTotal = maint * hours;
-        const total = filamentTotal + electricTotal + maintTotal;
+<script type="module" client:load>
+  function filamentCost(weightG, priceKg) {
+    return (weightG / 1000) * priceKg;
+  }
 
-        document.getElementById('filamentCost').textContent =
-          `Filament cost: $${filamentTotal.toFixed(2)}`;
+  document.getElementById("runCalc").addEventListener("click", () => {
+    const powerW   = parseFloat(document.getElementById('powerW').value) || 0;
+    const hours    = parseFloat(document.getElementById('hours').value) || 0;
+    const kwhPrice = parseFloat(document.getElementById('kwhPrice').value) || 0;
+    const maint    = parseFloat(document.getElementById('maint').value) || 0;
 
-        document.getElementById('electricCost').textContent =
-          `Electricity cost: $${electricTotal.toFixed(2)} (Energy: ${kWhUsed.toFixed(2)} kWh)`;
+    const w1 = parseFloat(document.getElementById('w1').value) || 0;
+    const p1 = parseFloat(document.getElementById('p1').value) || 0;
+    const w2 = parseFloat(document.getElementById('w2').value) || 0;
+    const p2 = parseFloat(document.getElementById('p2').value) || 0;
+    const w3 = parseFloat(document.getElementById('w3').value) || 0;
+    const p3 = parseFloat(document.getElementById('p3').value) || 0;
+    const w4 = parseFloat(document.getElementById('w4').value) || 0;
+    const p4 = parseFloat(document.getElementById('p4').value) || 0;
 
-        document.getElementById('maintCost').textContent =
-          `Maintenance cost: $${maintTotal.toFixed(2)}`;
+    const filamentTotal =
+      filamentCost(w1, p1) +
+      filamentCost(w2, p2) +
+      filamentCost(w3, p3) +
+      filamentCost(w4, p4);
 
-        document.getElementById('totalCost').textContent =
-          `Total print cost: $${total.toFixed(2)}`;
-      });
-    </script>
+    const kWhUsed = (powerW * hours) / 1000;
+    const electricTotal = kWhUsed * kwhPrice;
+    const maintTotal = maint * hours;
+    const total = filamentTotal + electricTotal + maintTotal;
 
-    <style>
-      :root {
-        --bg: #f5f7fa;
-        --card: #ffffff;
-        --border: #e2e6ea;
-        --text: #1a1d21;
-        --text2: #6c737c;
-        --accent: #0095e8;
-        --radius: 14px;
-        --ff: 'Sora', sans-serif;
-        --mono: 'JetBrains Mono', monospace;
-      }
+    document.getElementById('filamentCost').textContent =
+      `Filament cost: $${filamentTotal.toFixed(2)}`;
 
-      body {
-        background: var(--bg);
-        font-family: var(--ff);
-      }
+    document.getElementById('electricCost').textContent =
+      `Electricity cost: $${electricTotal.toFixed(2)} (Energy: ${kWhUsed.toFixed(2)} kWh)`;
 
-      .wrapper {
-        max-width: 900px;
-        margin: auto;
-        padding: 2rem;
-      }
+    document.getElementById('maintCost').textContent =
+      `Maintenance cost: $${maintTotal.toFixed(2)}`;
 
-      h1 {
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 0.4rem;
-      }
+    document.getElementById('totalCost').textContent =
+      `Total print cost: $${total.toFixed(2)}`;
+  });
+</script>
 
-      .sub {
-        color: var(--text2);
-        margin-bottom: 2rem;
-      }
-
-      .card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 1.8rem 2rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.04);
-      }
-
-      legend {
-        font-size: 1.05rem;
-        font-weight: 600;
-        color: var(--accent);
-        margin-bottom: 1rem;
-      }
-
-      label {
-        display: block;
-        margin: 0.65rem 0;
-        font-size: 0.9rem;
-      }
-
-      input {
-        margin-top: 0.25rem;
-        width: 160px;
-        padding: 0.55rem 0.7rem;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        background: #fdfdfd;
-        font-family: var(--mono);
-        font-size: 0.9rem;
-      }
-
-      input:focus {
-        outline: none;
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px rgba(0,149,232,0.2);
-      }
-
-      .row {
-        display: flex;
-        gap: 2rem;
-        flex-wrap: wrap;
-      }
-
-      button {
-        background: var(--accent);
-        color: white;
-        font-weight: 600;
-        border: none;
-        padding: 0.9rem 1.8rem;
-        border-radius: 10px;
-        font-size: 1rem;
-        cursor: pointer;
-        margin-top: 0.5rem;
-      }
-
-      button:hover {
-        background: #1ab8ff;
-      }
-
-      .result {
-        margin-top: 1rem;
-        padding: 1rem 1.2rem;
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        font-family: var(--mono);
-        box-shadow: 0 4px 14px rgba(0,0,0,0.04);
-      }
-    </style>
-  </body>
+</body>
 </html>
