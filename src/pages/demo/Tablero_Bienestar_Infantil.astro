@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>IBITE · Tablero de Bienestar Infantil y Adolescente</title>
+<title>IBITE · Dashboard de seguimiento · Tablero de Bienestar Infantil y Adolescente</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
@@ -109,6 +109,7 @@ details.help-box ol,details.help-box ul{font-size:.87rem;line-height:1.5;color:v
 </style>
 </head>
 <body>
+<div id="importQualityBar" style="display:none;margin:0 auto 12px;max-width:1400px;padding:10px 14px;border-radius:10px;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;font-size:13px;font-weight:600"></div>
 
 <header class="app-header">
   <div class="row">
@@ -322,6 +323,11 @@ function dateStamp(){
   const d = new Date();
   return d.toISOString().slice(0,10);
 }
+function escapeHtml(value){
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[ch]));
+}
 
 /* =========================================================
    CLASIFICACIÓN DE URGENCIA (alineada con la hoja 'Acciones' del Excel)
@@ -366,6 +372,344 @@ function computeUrgency(c){
   if(isFlagYes(c.desescolarFlag)) rank = Math.min(rank,1);
   if(isFlagYes(c.deterioroFlag)) rank = Math.min(rank,2);
   return rank;
+}
+
+
+/* =========================================================
+   IMPORTADOR ROBUSTO — DETECCIÓN Y MAPEO DE COLUMNAS
+   Todo permanece en este único HTML.
+   ========================================================= */
+
+const IBITE_FIELDS = {
+  FILA: {label:'Fila / ID', required:false, aliases:['fila','id','numero','número','registro']},
+  TS: {label:'Fecha / marca temporal', required:true, aliases:['marca temporal','timestamp','fecha','fecha de registro','fecha y hora','fecha/hora','hora']},
+  RAMA: {label:'Rama / sede / programa', required:false, aliases:['rama','sede','programa']},
+  NOMBRE: {label:'Nombre del estudiante', required:true, aliases:['nombre','nombre completo','nombre del estudiante','nombre estudiante','estudiante','nombres']},
+  TEL: {label:'Teléfono', required:false, aliases:['telefono','teléfono','celular','telefono celular','teléfono celular','movil','móvil']},
+  EDAD: {label:'Edad', required:false, aliases:['edad','edad del estudiante']},
+  SEXO: {label:'Sexo / género', required:false, aliases:['sexo','genero','género']},
+  INST: {label:'Institución educativa', required:true, aliases:['institucion','institución','institucion educativa','institución educativa','colegio','escuela','nombre institucion','nombre institución']},
+  GRADO: {label:'Grado / curso', required:false, aliases:['grado','curso','nivel','grado escolar','curso escolar']},
+  COMUNA: {label:'Comuna / localidad', required:false, aliases:['comuna','localidad','barrio','municipio']},
+  CONVIV_HERIDO: {label:'Conviviente herido', required:false, aliases:['conviviente herido','alguien herido','familiar herido']},
+  SALIDA_VIVIENDA: {label:'Salida de vivienda', required:false, aliases:['salida vivienda','salida de vivienda','tuvo que salir de vivienda']},
+  DANOS_VIVIENDA: {label:'Daños en vivienda', required:false, aliases:['danos vivienda','daños vivienda','daños en vivienda']},
+  DIFICULTADES_SERV: {label:'Dificultades de servicios', required:false, aliases:['dificultades servicios','dificultades de servicios','servicios']},
+  CAMBIO_RESID: {label:'Cambio de residencia', required:false, aliases:['cambio residencia','cambio de residencia','cambio de vivienda']},
+  POSTRAUM_SCORE: {label:'Puntaje postraumático', required:false, aliases:['postraum score','puntaje postraumatico','puntaje postraumático','postraumatico score']},
+  POSTRAUM_NIVEL: {label:'Nivel postraumático', required:false, aliases:['postraum nivel','nivel postraumatico','nivel postraumático']},
+  GENFUNC_SCORE: {label:'Puntaje de funcionamiento general', required:false, aliases:['genfunc score','funcionamiento general score','puntaje funcionamiento general']},
+  DETERIORO_FLAG: {label:'Deterioro funcional', required:false, aliases:['deterioro flag','deterioro funcional','deterioro']},
+  COMBINADO_SCORE: {label:'Puntaje combinado', required:false, aliases:['combinado score','puntaje combinado']},
+  COMBINADO_NIVEL: {label:'Nivel combinado', required:false, aliases:['combinado nivel','nivel combinado']},
+  ALERTA_SEGURIDAD: {label:'Alerta de seguridad', required:false, aliases:['alerta seguridad','alerta de seguridad','seguridad','alerta']},
+  REINTEGRA_SCORE: {label:'Puntaje de reintegración', required:false, aliases:['reintegra score','puntaje reintegra','puntaje reintegracion','puntaje reintegración']},
+  REINTEGRA_NIVEL: {label:'Nivel de reintegración', required:false, aliases:['reintegra nivel','nivel reintegra','nivel reintegracion','nivel reintegración']},
+  DESESCOLAR_FLAG: {label:'Desescolarización', required:false, aliases:['desescolar flag','desescolarizacion','desescolarización','desescolarizado']},
+  RECURSOS_PERS_SCORE: {label:'Puntaje recursos personales', required:false, aliases:['recursos pers score','recursos personales score','puntaje recursos personales']},
+  RECURSOS_PERS_NIVEL: {label:'Nivel recursos personales', required:false, aliases:['recursos pers nivel','recursos personales nivel','nivel recursos personales']},
+  RECURSOS_FAM_SCORE: {label:'Puntaje recursos familiares', required:false, aliases:['recursos fam score','recursos familiares score','puntaje recursos familiares']},
+  RECURSOS_FAM_NIVEL: {label:'Nivel recursos familiares', required:false, aliases:['recursos fam nivel','recursos familiares nivel','nivel recursos familiares']},
+  RIESGO_MATERIAL: {label:'Riesgo material', required:false, aliases:['riesgo material','riesgo material grave','riesgo material alto']},
+  NECESIDADES_BASICAS: {label:'Necesidades básicas', required:false, aliases:['necesidades basicas','necesidades básicas']},
+  CUESTIONARIO_COMPLETO: {label:'Cuestionario completo', required:false, aliases:['cuestionario completo','completo','estado cuestionario']},
+  PERFIL: {label:'Perfil', required:false, aliases:['perfil']},
+  INDICADOR_GENERAL: {label:'Indicador general', required:false, aliases:['indicador general','indicador de riesgo general','riesgo general','indicador']},
+  ACCION_RECOMENDADA: {label:'Acción recomendada', required:false, aliases:['accion recomendada','acción recomendada','recomendacion','recomendación']},
+  PLAZO: {label:'Plazo de acción', required:false, aliases:['plazo','plazo de accion','plazo de acción','tiempo de accion','tiempo de acción']},
+  RUTA: {label:'Ruta / responsable', required:false, aliases:['ruta','ruta responsable','ruta/responsable','responsable']},
+  ACCIONES_ESPECIFICAS: {label:'Acciones específicas', required:false, aliases:['acciones especificas','acciones específicas','acciones']},
+  INDICATORS: {label:'Indicadores I1–I17', required:false, aliases:['i1','i2','i3','i4','i5','i6','i7','i8','i9','i10','i11','i12','i13','i14','i15','i16','i17']}
+};
+
+function headerKey(s){
+  return normalize(s).replace(/[_\-\/\\.,:;()[\]{}]+/g,' ').replace(/\s+/g,' ').trim();
+}
+function headerCompact(s){
+  return headerKey(s).replace(/\s+/g,'');
+}
+function similarityScore(a,b){
+  a=headerCompact(a); b=headerCompact(b);
+  if(!a || !b) return 0;
+  if(a===b) return 1;
+  if(a.includes(b) || b.includes(a)) return 0.88;
+  const aa=new Set(a.split('')), bb=new Set(b.split(''));
+  let inter=0; aa.forEach(x=>{if(bb.has(x))inter++});
+  return inter/Math.max(aa.size,bb.size);
+}
+function expectedAliases(field){
+  const f=IBITE_FIELDS[field];
+  return f ? [f.label,...f.aliases] : [field];
+}
+function autoMapHeaders(headers){
+  const map={};
+  const used=new Set();
+  const confidence={};
+  Object.keys(IBITE_FIELDS).forEach(field=>{
+    if(field==='INDICATORS') return;
+    let best={idx:-1,score:0};
+    headers.forEach((h,idx)=>{
+      if(used.has(idx)) return;
+      const candidates=expectedAliases(field);
+      let score=0;
+      candidates.forEach(a=>{
+        const s=similarityScore(h,a);
+        if(s>score) score=s;
+      });
+      // Calculated fields in this workbook often have highly distinctive names.
+      if(score>best.score) best={idx,score};
+    });
+    if(best.idx>=0 && best.score>=0.86){
+      map[field]=best.idx;
+      confidence[field]=best.score;
+      used.add(best.idx);
+    }
+  });
+
+  // Indicators are a special group: detect I1..I17 independently.
+  for(let k=1;k<=17;k++){
+    const field='I'+k;
+    let best={idx:-1,score:0};
+    headers.forEach((h,idx)=>{
+      if(used.has(idx)) return;
+      const n=headerCompact(h);
+      const score=(n===field || n===('indicador'+k) || n===('item'+k) || n===('i'+k)) ? 1 : 0;
+      if(score>best.score) best={idx,score};
+    });
+    if(best.idx>=0){
+      map[field]=best.idx; confidence[field]=best.score; used.add(best.idx);
+    }
+  }
+  return {map,confidence};
+}
+
+let importContext=null;
+
+function ensureMapperUI(){
+  if(document.getElementById('columnMapperModal')) return;
+  const style=document.createElement('style');
+  style.textContent=`
+    #columnMapperModal{position:fixed;inset:0;background:rgba(15,23,42,.72);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px}
+    #columnMapperModal.show{display:flex}
+    .mapper-card{background:#fff;width:min(1120px,96vw);max-height:92vh;overflow:auto;border-radius:20px;box-shadow:0 25px 70px rgba(0,0,0,.25)}
+    .mapper-head{padding:22px 26px;border-bottom:1px solid #e5e7eb;position:sticky;top:0;background:#fff;z-index:2}
+    .mapper-head h2{margin:0 0 5px;font-size:22px;color:#0f172a}
+    .mapper-head p{margin:0;color:#64748b;font-size:14px}
+    .mapper-summary{display:flex;gap:10px;flex-wrap:wrap;padding:16px 26px;background:#f8fafc;border-bottom:1px solid #e5e7eb}
+    .mapper-pill{padding:7px 11px;border-radius:999px;font-size:12px;font-weight:700}
+    .pill-ok{background:#dcfce7;color:#166534}.pill-warn{background:#fef3c7;color:#92400e}.pill-bad{background:#fee2e2;color:#991b1b}
+    .mapper-table{width:100%;border-collapse:collapse}
+    .mapper-table th{background:#f8fafc;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#64748b;padding:11px 18px;border-bottom:1px solid #e5e7eb;position:sticky;top:77px}
+    .mapper-table td{padding:12px 18px;border-bottom:1px solid #eef2f7;vertical-align:middle}
+    .mapper-select{width:100%;padding:9px 10px;border:1px solid #cbd5e1;border-radius:9px;background:#fff}
+    .mapper-sample{font-size:12px;color:#64748b;max-width:330px}
+    .mapper-status{font-size:12px;font-weight:700;white-space:nowrap}
+    .status-auto{color:#15803d}.status-manual{color:#b45309}.status-missing{color:#dc2626}.status-optional{color:#64748b}
+    .mapper-foot{padding:16px 26px;display:flex;justify-content:space-between;gap:12px;position:sticky;bottom:0;background:#fff;border-top:1px solid #e5e7eb}
+    .mapper-btn{border:0;border-radius:10px;padding:11px 17px;font-weight:700;cursor:pointer}
+    .mapper-btn.primary{background:#2563eb;color:#fff}.mapper-btn.secondary{background:#e2e8f0;color:#0f172a}
+    .mapper-btn:disabled{opacity:.45;cursor:not-allowed}
+    .mapper-help{padding:12px 26px;color:#475569;font-size:13px;background:#eff6ff}
+  `;
+  document.head.appendChild(style);
+  document.body.insertAdjacentHTML('beforeend',`
+    <div id="columnMapperModal">
+      <div class="mapper-card">
+        <div class="mapper-head">
+          <h2>Revisar columnas del Excel</h2>
+          <p>El sistema ha comparado los encabezados del archivo con los campos que necesita el tablero. Confirma o corrige los campos marcados.</p>
+        </div>
+        <div id="mapperSummary" class="mapper-summary"></div>
+        <div class="mapper-help">Puedes dejar sin asignar los campos opcionales. Los campos obligatorios deben estar correctamente asignados antes de importar.</div>
+        <table class="mapper-table">
+          <thead><tr><th>Campo del tablero</th><th>Columna del Excel</th><th>Ejemplos encontrados</th><th>Estado</th></tr></thead>
+          <tbody id="mapperBody"></tbody>
+        </table>
+        <div class="mapper-foot">
+          <button id="mapperCancel" class="mapper-btn secondary">Cancelar importación</button>
+          <button id="mapperApply" class="mapper-btn primary">Usar este mapeo e importar</button>
+        </div>
+      </div>
+    </div>`);
+  document.getElementById('mapperCancel').onclick=()=>document.getElementById('columnMapperModal').classList.remove('show');
+  document.getElementById('mapperApply').onclick=applyColumnMapping;
+}
+
+function showColumnMapper(ctx){
+  ensureMapperUI();
+  importContext=ctx;
+  const {headers, rows, map, confidence}=ctx;
+  const body=document.getElementById('mapperBody');
+  const used=new Set(Object.values(map));
+  let html='';
+  let missingRequired=0, auto=0, manual=0, optionalMissing=0;
+
+  const fields=Object.keys(IBITE_FIELDS).filter(f=>f!=='INDICATORS');
+  fields.push(...Array.from({length:17},(_,i)=>'I'+(i+1)));
+
+  fields.forEach(field=>{
+    const meta=IBITE_FIELDS[field] || {label:'Indicador '+field.replace('I',''),required:false};
+    const idx=map[field];
+    const isAuto=idx!==undefined && confidence[field]>=.86;
+    if(isAuto) auto++;
+    else if(idx!==undefined) manual++;
+    else if(meta.required) missingRequired++;
+    else optionalMissing++;
+
+    const options=['<option value="">— No asignar —</option>'].concat(
+      headers.map((h,i)=>{
+        const selected=idx===i?' selected':'';
+        const disabled=(used.has(i)&&idx!==i)?' disabled':'';
+        return `<option value="${i}"${selected}${disabled}>${escapeHtml(h || ('Columna '+(i+1)))}</option>`;
+      })
+    ).join('');
+
+    const sample=idx!==undefined ? rows.slice(1,6).map(r=>r[idx]).filter(v=>!isBlank(v)).slice(0,3).map(v=>escapeHtml(String(v))).join(' · ') : 'Sin datos de ejemplo';
+    const status=idx===undefined
+      ? (meta.required ? '<span class="mapper-status status-missing">❌ Obligatorio</span>':'<span class="mapper-status status-optional">Opcional</span>')
+      : (isAuto ? '<span class="mapper-status status-auto">✓ Automático</span>':'<span class="mapper-status status-manual">⚠ Revisar</span>');
+
+    html+=`<tr data-field="${field}">
+      <td><strong>${escapeHtml(meta.label || field)}</strong>${meta.required?' <small style="color:#dc2626">*</small>':''}</td>
+      <td><select class="mapper-select" data-map-field="${field}">${options}</select></td>
+      <td class="mapper-sample">${sample}</td>
+      <td>${status}</td>
+    </tr>`;
+  });
+
+  body.innerHTML=html;
+  document.getElementById('mapperSummary').innerHTML=
+    `<span class="mapper-pill pill-ok">✓ ${auto} automáticas</span>
+     <span class="mapper-pill pill-warn">⚠ ${manual} para revisar</span>
+     <span class="mapper-pill ${missingRequired?'pill-bad':'pill-ok'}">${missingRequired?'❌ '+missingRequired+' obligatorias faltantes':'✓ Obligatorios completos'}</span>
+     <span class="mapper-pill pill-warn">${optionalMissing} opcionales sin asignar</span>`;
+
+  body.querySelectorAll('select').forEach(sel=>{
+    sel.addEventListener('change',()=>{
+      const f=sel.dataset.mapField;
+      const v=sel.value;
+      if(v==='') delete importContext.map[f];
+      else importContext.map[f]=Number(v);
+      // Re-rendering keeps status/sample accurate and preserves selections.
+      const current={...importContext.map};
+      const conf={};
+      Object.keys(current).forEach(k=>conf[k]=0);
+      importContext.confidence=conf;
+      showColumnMapper(importContext);
+    });
+  });
+
+  const requiredMissing=fields.some(f=>{
+    const meta=IBITE_FIELDS[f] || {required:false};
+    return meta.required && importContext.map[f]===undefined;
+  });
+  document.getElementById('mapperApply').disabled=requiredMissing;
+  document.getElementById('columnMapperModal').classList.add('show');
+}
+
+function saveColumnMapping(map, headers){
+  try{
+    localStorage.setItem('ibite_column_mapping_v2',JSON.stringify({map,headers,savedAt:new Date().toISOString()}));
+  }catch(e){}
+}
+function loadColumnMapping(){
+  try{return JSON.parse(localStorage.getItem('ibite_column_mapping_v2')||'null');}catch(e){return null;}
+}
+
+function buildDynamicCOL(map){
+  const C={};
+  Object.keys(map).forEach(k=>{if(k.startsWith('I') && /^I\d+$/.test(k)) C[k]=map[k]; else C[k]=map[k];});
+  return C;
+}
+
+function parseWorkbookDynamic(wb, suppliedMap=null){
+  const wsname=wb.SheetNames.includes(CONFIG.SHEET_NAME)?CONFIG.SHEET_NAME:wb.SheetNames[0];
+  const ws=wb.Sheets[wsname];
+  if(!ws) throw new Error('No se encontró una hoja de cálculo válida.');
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null});
+  if(!rows.length) throw new Error('La hoja seleccionada está vacía.');
+  const headers=(rows[0]||[]).map((h,i)=>String(h??'').trim() || `Columna ${i+1}`);
+  let mapping=suppliedMap;
+  if(!mapping){
+    const auto=autoMapHeaders(headers);
+    mapping=auto.map;
+    const cached=loadColumnMapping();
+    if(cached && cached.map){
+      const cachedAuto=autoMapHeaders(headers);
+      Object.keys(cached.map).forEach(k=>{
+        const idx=cached.map[k];
+        if(Number.isInteger(idx) && idx<headers.length && !cachedAuto.map[k]) mapping[k]=idx;
+      });
+    }
+    const required=Object.keys(IBITE_FIELDS).filter(k=>IBITE_FIELDS[k].required);
+    const missing=required.filter(k=>mapping[k]===undefined);
+    // Show mapping UI when required fields are missing OR automatic confidence is
+    // incomplete for relevant fields.
+    const needsReview=missing.length>0 || Object.keys(IBITE_FIELDS).some(k=>{
+      if(k==='INDICATORS' || IBITE_FIELDS[k].required===false) return false;
+      return mapping[k]===undefined;
+    });
+    if(needsReview){
+      showColumnMapper({wb,ws,rows,headers,map:mapping,confidence:auto.confidence});
+      return null;
+    }
+    saveColumnMapping(mapping,headers);
+  }
+
+  const get=k=>mapping[k]!==undefined ? rows.map(r=>r[mapping[k]]) : [];
+  const val=(r,k)=>mapping[k]===undefined?null:r[mapping[k]];
+  const cases=[];
+  let totalAttempted=0,totalSinDatos=0;
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i]; if(!r) continue;
+    const fila=val(r,'FILA'), ts=toDate(val(r,'TS'));
+    if(fila===null && !ts) continue;
+    if(!ts) continue;
+    totalAttempted++;
+    const nombre=val(r,'NOMBRE');
+    if(isBlank(nombre)){totalSinDatos++;continue;}
+    const ind={}; for(let k=1;k<=17;k++) ind[k]=toNum(val(r,'I'+k));
+    cases.push({
+      fila,ts,rama:val(r,'RAMA'),nombre:String(nombre).trim(),telefono:val(r,'TEL'),
+      edad:toNum(val(r,'EDAD')),sexo:val(r,'SEXO'),institucion:val(r,'INST'),grado:val(r,'GRADO'),comuna:val(r,'COMUNA'),
+      convivienteHerido:val(r,'CONVIV_HERIDO'),salidaVivienda:val(r,'SALIDA_VIVIENDA'),danosVivienda:val(r,'DANOS_VIVIENDA'),
+      dificultadesServ:val(r,'DIFICULTADES_SERV'),cambioResid:val(r,'CAMBIO_RESID'),ind,
+      postraumScore:toNum(val(r,'POSTRAUM_SCORE')),postraumNivel:val(r,'POSTRAUM_NIVEL'),
+      genFuncScore:toNum(val(r,'GENFUNC_SCORE')),deterioroFlag:val(r,'DETERIORO_FLAG'),
+      combinadoScore:toNum(val(r,'COMBINADO_SCORE')),combinadoNivel:val(r,'COMBINADO_NIVEL'),
+      alertaSeguridad:val(r,'ALERTA_SEGURIDAD'),
+      reintegraScore:toNum(val(r,'REINTEGRA_SCORE')),reintegraNivel:val(r,'REINTEGRA_NIVEL'),desescolarFlag:val(r,'DESESCOLAR_FLAG'),
+      recursosPersScore:toNum(val(r,'RECURSOS_PERS_SCORE')),recursosPersNivel:val(r,'RECURSOS_PERS_NIVEL'),
+      recursosFamScore:toNum(val(r,'RECURSOS_FAM_SCORE')),recursosFamNivel:val(r,'RECURSOS_FAM_NIVEL'),
+      riesgoMaterial:val(r,'RIESGO_MATERIAL'),necesidadesBasicas:val(r,'NECESIDADES_BASICAS'),
+      cuestionarioCompleto:val(r,'CUESTIONARIO_COMPLETO'),perfil:val(r,'PERFIL'),indicadorGeneral:val(r,'INDICADOR_GENERAL'),
+      accionRecomendada:val(r,'ACCION_RECOMENDADA'),plazo:val(r,'PLAZO'),ruta:val(r,'RUTA'),accionesEspecificas:val(r,'ACCIONES_ESPECIFICAS')
+    });
+  }
+  return {cases,totalAttempted,totalSinDatos,headers,mapping,wsname};
+}
+
+function applyColumnMapping(){
+  if(!importContext) return;
+  const selects=document.querySelectorAll('#mapperBody select[data-map-field]');
+  const mapping={};
+  selects.forEach(s=>{if(s.value!=='')mapping[s.dataset.mapField]=Number(s.value);});
+  const required=Object.keys(IBITE_FIELDS).filter(k=>IBITE_FIELDS[k].required);
+  const missing=required.filter(k=>mapping[k]===undefined);
+  if(missing.length){alert('Faltan campos obligatorios: '+missing.map(k=>IBITE_FIELDS[k].label).join(', '));return;}
+  saveColumnMapping(mapping,importContext.headers);
+  document.getElementById('columnMapperModal').classList.remove('show');
+  try{
+    const result=parseWorkbookDynamic(importContext.wb,mapping);
+    if(!result) return;
+    if(result.cases.length===0) alert('El archivo se leyó, pero no se encontraron registros válidos con la estructura seleccionada.');
+    applyLoadedData(result.cases,'file',{totalAttempted:result.totalAttempted,totalSinDatos:result.totalSinDatos,mapping:result.mapping,headers:result.headers});
+    saveToCache();
+    setStatus('Excel importado · '+result.cases.length+' casos · columnas verificadas y mapeadas.');
+  }catch(err){
+    console.error(err);
+    alert('No se pudo procesar el archivo después del mapeo.\\n\\n'+err.message);
+  }
 }
 
 /* =========================================================
@@ -434,6 +778,15 @@ function applyLoadedData(cases, sourceLabel, extra){
   }
   populateFilterOptions();
   renderAll();
+  const iq=document.getElementById('importQualityBar');
+  if(iq){
+    const mapped=extra && extra.mapping ? Object.keys(extra.mapping).length : null;
+    iq.style.display = sourceLabel==='file' ? 'block' : 'none';
+    if(sourceLabel==='file'){
+      iq.textContent = '✓ Excel verificado · ' + (mapped!==null ? mapped + ' campos mapeados' : 'columnas verificadas') +
+        (extra && extra.totalAttempted!==undefined ? ' · ' + extra.totalAttempted + ' registros revisados' : '');
+    }
+  }
   const labelMap = {file:'Excel cargado', fetch:'Excel cargado automáticamente', cache:'datos guardados en este navegador', demo:'datos de EJEMPLO'};
   setStatus('Mostrando ' + (labelMap[sourceLabel]||sourceLabel) + ' · ' + state.cases.length + ' casos con cuestionario iniciado.');
 }
@@ -455,6 +808,7 @@ function loadFromCache(){
 }
 
 async function tryAutoFetch(){
+  if(typeof XLSX==='undefined'){ return false; }
   try{
     const res = await fetch(encodeURI('./' + CONFIG.EXPECTED_FILENAME), {cache:'no-store'});
     if(!res.ok) return false;
@@ -468,20 +822,69 @@ async function tryAutoFetch(){
 }
 
 function handleFile(file){
-  setStatus('Leyendo ' + file.name + '…');
-  const reader = new FileReader();
-  reader.onload = function(e){
+  if(!file) return;
+  const ext=(file.name.split('.').pop()||'').toLowerCase();
+  if(!['xlsx','xls','xlsm'].includes(ext)){
+    alert('Selecciona un archivo Excel (.xlsx, .xls o .xlsm).');
+    return;
+  }
+  setStatus('Leyendo y verificando columnas de ' + file.name + '…');
+  const reader=new FileReader();
+  reader.onload=function(e){
     try{
-      const wb = XLSX.read(e.target.result, {type:'array', cellDates:true});
-      const {cases, totalAttempted, totalSinDatos} = parseWorkbook(wb);
-      if(cases.length===0){
-        alert('El archivo se leyó, pero no se encontraron registros con datos en la hoja "' + CONFIG.SHEET_NAME + '". Verifica que sea el Excel correcto.');
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
+      const wsname=wb.SheetNames.includes(CONFIG.SHEET_NAME)?CONFIG.SHEET_NAME:wb.SheetNames[0];
+      const ws=wb.Sheets[wsname];
+      if(!ws) throw new Error('No se encontró ninguna hoja utilizable.');
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null});
+      const headers=(rows[0]||[]).map((h,i)=>String(h??'').trim()||`Columna ${i+1}`);
+      if(headers.length===0) throw new Error('No se encontró una fila de encabezados.');
+
+      const auto=autoMapHeaders(headers);
+      const cached=loadColumnMapping();
+      let mapping={...auto.map};
+
+      // Reuse previous user mappings only when the cached column still exists
+      // and the current automatic mapper has not already identified that field.
+      if(cached && cached.map){
+        Object.keys(cached.map).forEach(k=>{
+          const idx=cached.map[k];
+          if(mapping[k]===undefined && Number.isInteger(idx) && idx<headers.length) mapping[k]=idx;
+        });
       }
-      applyLoadedData(cases, 'file', {totalAttempted, totalSinDatos});
+
+      const required=Object.keys(IBITE_FIELDS).filter(k=>IBITE_FIELDS[k].required);
+      const missingRequired=required.filter(k=>mapping[k]===undefined);
+
+      // For a human-safe import, show the mapper for every user-uploaded file
+      // when there are uncertain/missing fields. Fully matched files can load
+      // immediately.
+      const importantFields=['TS','NOMBRE','INST','GRADO','INDICADOR_GENERAL','PLAZO','ALERTA_SEGURIDAD'];
+      const importantMissing=importantFields.some(k=>mapping[k]===undefined);
+      const lowConfidence=importantFields.some(k=>mapping[k]!==undefined && (auto.confidence[k]||0)<.86);
+
+      if(missingRequired.length || importantMissing || lowConfidence){
+        showColumnMapper({wb,ws,rows,headers,map:mapping,confidence:auto.confidence});
+        setStatus('Excel leído · revisa el mapeo de columnas antes de importar.');
+        return;
+      }
+
+      saveColumnMapping(mapping,headers);
+      const result=parseWorkbookDynamic(wb,mapping);
+      if(!result) return;
+      if(result.cases.length===0){
+        alert('El archivo se leyó, pero no se encontraron registros válidos. Verifica la hoja y las columnas de fecha/nombre.');
+      }
+      applyLoadedData(result.cases,'file',{
+        totalAttempted:result.totalAttempted,
+        totalSinDatos:result.totalSinDatos,
+        mapping:result.mapping,
+        headers:result.headers
+      });
       saveToCache();
     }catch(err){
       console.error(err);
-      alert('No se pudo leer el archivo. Verifica que sea un Excel (.xlsx) exportado del formulario IBITE.\n\nDetalle técnico: ' + err.message);
+      alert('No se pudo leer el archivo. Verifica que sea un Excel válido.\n\nDetalle técnico: '+err.message);
       setStatus('Error al leer el archivo.');
     }
   };
@@ -563,7 +966,6 @@ function fillSelect(id, values, allLabel, labelFn){
   sel.innerHTML = '<option value="">'+allLabel+'</option>' + values.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(labelFn?labelFn(v):v)}</option>`).join('');
   if(values.includes(current)) sel.value = current;
 }
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
 function getFilteredCases(){
   const f = state.filters;
@@ -581,7 +983,21 @@ function getFilteredCases(){
 /* =========================================================
    RENDER — TAB 1 (Resumen general)
    ========================================================= */
-function kpiCard(cls, num, lbl){ return `<div class="kpi ${cls}"><div class="num">${num}</div><div class="lbl">${lbl}</div></div>`; }
+function kpiCard(cls, num, lbl){
+  const colorMap = {
+    info: { bg: '#ffffff', border: '#e2e8f0', num: '#0b5b8c' },
+    ok: { bg: '#ffffff', border: '#dcfce7', num: '#16a34a' },
+    crit: { bg: '#ffffff', border: '#fecaca', num: '#dc2626' },
+    alto: { bg: '#ffffff', border: '#fed7aa', num: '#ea580c' }
+  };
+  const palette = colorMap[cls] || colorMap.info;
+  return `
+    <div class="kpi ${cls}" style="background:${palette.bg};border:1px solid ${palette.border};border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,.03);">
+      <div class="num" style="font-size:1.7rem;font-weight:800;line-height:1;color:${palette.num};">${num}</div>
+      <div class="lbl" style="font-size:.75rem;color:#64748b;margin-top:6px;font-weight:600;">${lbl}</div>
+    </div>
+  `;
+}
 
 function renderKPIs(cases){
   const total = cases.length;
@@ -675,11 +1091,11 @@ function renderUrgencyChips(cases){
   const chips = [0,1,2,3,4].map(k=>{
     const m = URGENCY_META[k];
     const active = state.tab2.urgency===k ? 'active' : '';
-    return `<button class="chip ${active}" data-urg="${k}" style="background:${m.bg};color:${m.color}">${m.short}: ${counts[k]}</button>`;
+    return `<button class="chip ${active}" data-urg="${k}" style="background:${m.bg};color:${m.color};border-radius:999px;padding:8px 14px;font-size:.8rem;font-weight:700;cursor:pointer;border:2px solid transparent;display:flex;gap:6px;align-items:center;${state.tab2.urgency===k ? 'outline:2px solid rgba(0,0,0,.15);' : ''}">${m.short}: ${counts[k]}</button>`;
   }).join('');
   const allActive = state.tab2.urgency===null ? 'active' : '';
   document.getElementById('urgencyChips').innerHTML =
-    `<button class="chip ${allActive}" data-urg="all" style="background:#e2e8f0;color:#1e293b">Todos: ${cases.length}</button>` + chips;
+    `<button class="chip ${allActive}" data-urg="all" style="background:#e2e8f0;color:#1e293b;border-radius:999px;padding:8px 14px;font-size:.8rem;font-weight:700;cursor:pointer;border:2px solid transparent;display:flex;gap:6px;align-items:center;${state.tab2.urgency===null ? 'outline:2px solid rgba(0,0,0,.15);' : ''}">Todos: ${cases.length}</button>` + chips;
 
   document.querySelectorAll('#urgencyChips .chip').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -690,8 +1106,12 @@ function renderUrgencyChips(cases){
   });
 }
 
-function badge(text, color, bg){ return `<span class="badge" style="color:${color};background:${bg}">${escapeHtml(text)}</span>`; }
-function badgeOutline(text){ return `<span class="badge outline">${escapeHtml(text)}</span>`; }
+function badge(text, color, bg){
+  return `<span class="badge" style="color:${color};background:${bg};border-radius:999px;padding:4px 10px;font-size:.72rem;font-weight:700;white-space:nowrap;">${escapeHtml(text)}</span>`;
+}
+function badgeOutline(text){
+  return `<span class="badge outline" style="border-radius:999px;padding:4px 10px;font-size:.72rem;font-weight:700;white-space:nowrap;background:#fff;border:1px solid #e2e8f0;color:#64748b;">${escapeHtml(text)}</span>`;
+}
 
 function renderCaseList(cases){
   const container = document.getElementById('caseList');
@@ -716,40 +1136,40 @@ function renderCaseList(cases){
       return `<tr><td>Í${i+1} ${lbl}</td><td>${v===null||v===undefined?'—':v}</td></tr>`;
     }).join('');
 
-    return `<details class="case-card" style="border-left-color:${meta.color}">
-      <summary>
-        <div class="case-main">
-          <span class="name">${escapeHtml(c.nombre)}</span>
-          <span class="meta">${c.edad?c.edad+' años · ':''}${escapeHtml(c.sexo||'')} · ${escapeHtml(c.institucion||'Sin institución')} · Grado ${escapeHtml(c.grado||'—')} · ${escapeHtml(c.comuna||'Sin comuna')} · Registrado: ${fmtDate(c.ts)}</span>
+    return `<details class="case-card" style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;border-left:6px solid ${meta.color};overflow:hidden;">
+      <summary style="list-style:none;cursor:pointer;padding:12px 14px;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;">
+        <div class="case-main" style="display:flex;flex-direction:column;gap:3px;">
+          <span class="name" style="font-weight:700;font-size:1rem;">${escapeHtml(c.nombre)}</span>
+          <span class="meta" style="font-size:.78rem;color:#64748b;">${c.edad?c.edad+' años · ':''}${escapeHtml(c.sexo||'')} · ${escapeHtml(c.institucion||'Sin institución')} · Grado ${escapeHtml(c.grado||'—')} · ${escapeHtml(c.comuna||'Sin comuna')} · Registrado: ${fmtDate(c.ts)}</span>
         </div>
-        <div class="case-badges">
-          <span class="badge" style="background:${meta.bg};color:${meta.color}">${meta.label}</span>
+        <div class="case-badges" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          <span class="badge" style="background:${meta.bg};color:${meta.color};border-radius:999px;padding:4px 10px;font-size:.72rem;font-weight:700;white-space:nowrap;">${meta.label}</span>
           ${badges.join('')}
         </div>
       </summary>
-      <div class="case-detail">
-        <div class="action-box ${urg===0?'crit':''}">
-          <strong>Acción recomendada (${escapeHtml(c.plazo||'—')})</strong>
+      <div class="case-detail" style="padding:0 16px 16px;border-top:1px dashed #e2e8f0;">
+        <div class="action-box ${urg===0?'crit':''}" style="margin-top:12px;background:${urg===0 ? '#fee2e2' : '#fff7ed'};border:1px solid ${urg===0 ? '#fecaca' : '#fed7aa'};border-radius:8px;padding:10px 12px;">
+          <strong style="display:block;margin-bottom:2px;">Acción recomendada (${escapeHtml(c.plazo||'—')})</strong>
           ${escapeHtml(c.accionRecomendada||'—')}
           <div style="margin-top:6px;font-size:.82rem;color:#7c2d12"><strong>Ruta / responsable:</strong> ${escapeHtml(c.ruta||'—')}</div>
         </div>
-        <div class="grid">
-          <div class="block"><h4>Contacto</h4><p>📞 ${escapeHtml(c.telefono||'Sin teléfono')}${c.telefono?` — <a href="tel:${escapeHtml(String(c.telefono))}">llamar</a>`:''}</p></div>
-          <div class="block"><h4>Quién respondió</h4><p>${c.rama==='A'?'Cuidador (niño/a 5–10 años)':(c.rama==='B'?'Autoreporte (11–19 años)':escapeHtml(c.rama||'—'))}</p></div>
-          <div class="block"><h4>Perfil operativo</h4><p>${escapeHtml(c.perfil||'—')}</p></div>
-          <div class="block"><h4>Indicador de riesgo general</h4><p>${escapeHtml(c.indicadorGeneral||'—')}</p></div>
-          <div class="block"><h4>Malestar postraumático</h4><p>${c.postraumScore!==null?c.postraumScore+'/12 · ':''}${escapeHtml(c.postraumNivel||'—')}</p></div>
-          <div class="block"><h4>Malestar combinado</h4><p>${c.combinadoScore!==null?c.combinadoScore+'/18 · ':''}${escapeHtml(c.combinadoNivel||'—')}</p></div>
-          <div class="block"><h4>Reintegración escolar</h4><p>${c.reintegraScore!==null?c.reintegraScore+'/9 · ':''}${escapeHtml(c.reintegraNivel||'—')}</p></div>
-          <div class="block"><h4>Recursos personales</h4><p>${c.recursosPersScore!==null?c.recursosPersScore+'/9 · ':''}${escapeHtml(c.recursosPersNivel||'—')}</p></div>
-          <div class="block"><h4>Recursos familiares</h4><p>${c.recursosFamScore!==null?c.recursosFamScore+'/9 · ':''}${escapeHtml(c.recursosFamNivel||'—')}</p></div>
-          <div class="block"><h4>Contexto material</h4><p>Vivienda: ${escapeHtml(c.danosVivienda||'—')}<br>Salida temporal: ${escapeHtml(c.salidaVivienda||'—')}<br>Dificultades de servicios: ${escapeHtml(c.dificultadesServ||'—')}</p></div>
+        <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px;">
+          <div class="block" style="background:#eef1f4;border-radius:8px;padding:10px 12px;"><h4 style="margin:0 0 4px;font-size:.75rem;text-transform:uppercase;color:#64748b;letter-spacing:.03em;">Contacto</h4><p style="margin:0;font-size:.86rem;">📞 ${escapeHtml(c.telefono||'Sin teléfono')}${c.telefono?` — <a href="tel:${escapeHtml(String(c.telefono))}">llamar</a>`:''}</p></div>
+          <div class="block" style="background:#eef1f4;border-radius:8px;padding:10px 12px;"><h4 style="margin:0 0 4px;font-size:.75rem;text-transform:uppercase;color:#64748b;letter-spacing:.03em;">Quién respondió</h4><p style="margin:0;font-size:.86rem;">${c.rama==='A'?'Cuidador (niño/a 5–10 años)':(c.rama==='B'?'Autoreporte (11–19 años)':escapeHtml(c.rama||'—'))}</p></div>
+          <div class="block" style="background:#eef1f4;border-radius:8px;padding:10px 12px;"><h4 style="margin:0 0 4px;font-size:.75rem;text-transform:uppercase;color:#64748b;letter-spacing:.03em;">Perfil operativo</h4><p style="margin:0;font-size:.86rem;">${escapeHtml(c.perfil||'—')}</p></div>
+          <div class="block" style="background:#eef1f4;border-radius:8px;padding:10px 12px;"><h4 style="margin:0 0 4px;font-size:.75rem;text-transform:uppercase;color:#64748b;letter-spacing:.03em;">Indicador de riesgo general</h4><p style="margin:0;font-size:.86rem;">${escapeHtml(c.indicadorGeneral||'—')}</p></div>
+          <div class="block" style="background:#eef1f4;border-radius:8px;padding:10px 12px;"><h4 style="margin:0 0 4px;font-size:.75rem;text-transform:uppercase;color:#64748b;letter-spacing:.03em;">Malestar postraumático</h4><p style="margin:0;font-size:.86rem;">${c.postraumScore!==null?c.postraumScore+'/12 · ':''}${escapeHtml(c.postraumNivel||'—')}</p></div>
+          <div class="block" style="background:#eef1f4;border-radius:8px;padding:10px 12px;"><h4 style="margin:0 0 4px;font-size:.75rem;text-transform:uppercase;color:#64748b;letter-spacing:.03em;">Malestar combinado</h4><p style="margin:0;font-size:.86rem;">${c.combinadoScore!==null?c.combinadoScore+'/18 · ':''}${escapeHtml(c.combinadoNivel||'—')}</p></div>
+          <div class="block" style="background:#eef1f4;border-radius:8px;padding:10px 12px;"><h4 style="margin:0 0 4px;font-size:.75rem;text-transform:uppercase;color:#64748b;letter-spacing:.03em;">Reintegración escolar</h4><p style="margin:0;font-size:.86rem;">${c.reintegraScore!==null?c.reintegraScore+'/9 · ':''}${escapeHtml(c.reintegraNivel||'—')}</p></div>
+          <div class="block" style="background:#eef1f4;border-radius:8px;padding:10px 12px;"><h4 style="margin:0 0 4px;font-size:.75rem;text-transform:uppercase;color:#64748b;letter-spacing:.03em;">Recursos personales</h4><p style="margin:0;font-size:.86rem;">${c.recursosPersScore!==null?c.recursosPersScore+'/9 · ':''}${escapeHtml(c.recursosPersNivel||'—')}</p></div>
+          <div class="block" style="background:#eef1f4;border-radius:8px;padding:10px 12px;"><h4 style="margin:0 0 4px;font-size:.75rem;text-transform:uppercase;color:#64748b;letter-spacing:.03em;">Recursos familiares</h4><p style="margin:0;font-size:.86rem;">${c.recursosFamScore!==null?c.recursosFamScore+'/9 · ':''}${escapeHtml(c.recursosFamNivel||'—')}</p></div>
+          <div class="block" style="background:#eef1f4;border-radius:8px;padding:10px 12px;"><h4 style="margin:0 0 4px;font-size:.75rem;text-transform:uppercase;color:#64748b;letter-spacing:.03em;">Contexto material</h4><p style="margin:0;font-size:.86rem;">Vivienda: ${escapeHtml(c.danosVivienda||'—')}<br>Salida temporal: ${escapeHtml(c.salidaVivienda||'—')}<br>Dificultades de servicios: ${escapeHtml(c.dificultadesServ||'—')}</p></div>
         </div>
         <details style="margin-top:10px;">
-          <summary style="cursor:pointer;font-size:.82rem;color:var(--muted)">Ver los 17 indicadores IBITE-17</summary>
-          <table class="indicator-table"><tbody>${indicatorRows}</tbody></table>
+          <summary style="cursor:pointer;font-size:.82rem;color:#64748b;">Ver los 17 indicadores IBITE-17</summary>
+          <table class="indicator-table" style="width:100%;border-collapse:collapse;margin-top:10px;font-size:.8rem;"><tbody>${indicatorRows}</tbody></table>
         </details>
-        ${c.accionesEspecificas ? `<div class="action-box" style="margin-top:10px;background:#eff6ff;border-color:#bfdbfe;"><strong>Acciones específicas por señal</strong>${escapeHtml(c.accionesEspecificas)}</div>` : ''}
+        ${c.accionesEspecificas ? `<div class="action-box" style="margin-top:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 12px;"><strong style="display:block;margin-bottom:2px;">Acciones específicas por señal</strong>${escapeHtml(c.accionesEspecificas)}</div>` : ''}
       </div>
     </details>`;
   }).join('');
@@ -865,20 +1285,43 @@ window.addEventListener('drop', e=>{
    INICIO
    ========================================================= */
 async function init(){
-  if(typeof XLSX === 'undefined'){
-    setStatus('⚠️ No se pudo cargar la librería de lectura de Excel (¿sin conexión a internet?). Conéctate a internet al menos una vez para usar el tablero.');
-  }
-  setStatus('Buscando "' + CONFIG.EXPECTED_FILENAME + '" en la misma carpeta…');
-  const okFetch = await tryAutoFetch();
-  if(okFetch) return;
+  try{
+    ensureMapperUI();
 
-  const cached = loadFromCache();
-  if(cached && cached.cases && cached.cases.length){
-    applyLoadedData(cached.cases, 'cache', {savedAt: cached.savedAt});
-    return;
+    // XLSX is loaded from the existing page dependency. If it isn't available,
+    // don't leave the dashboard permanently stuck on "Inicializando".
+    if(typeof XLSX === 'undefined'){
+      setStatus('⚠️ No se pudo cargar el lector de Excel. Puedes revisar la conexión y volver a cargar la página.');
+      const b=document.getElementById('importQualityBar');
+      if(b){
+        b.style.display='block';
+        b.style.background='#fffbeb';
+        b.style.borderColor='#fde68a';
+        b.style.color='#92400e';
+        b.textContent='⚠️ Lector de Excel no disponible. Recarga la página o verifica tu conexión a internet.';
+      }
+      // Demo data keeps the dashboard usable even if the CDN is unavailable.
+      loadDemo();
+      return;
+    }
+
+    setStatus('Buscando "' + CONFIG.EXPECTED_FILENAME + '" en la misma carpeta…');
+    const okFetch = await tryAutoFetch();
+    if(okFetch) return;
+
+    const cached = loadFromCache();
+    if(cached && cached.cases && cached.cases.length){
+      applyLoadedData(cached.cases, 'cache', {savedAt: cached.savedAt});
+      return;
+    }
+
+    setStatus('No se encontró el Excel automáticamente. Carga el archivo manualmente o mira los datos de ejemplo.');
+    loadDemo();
+  }catch(err){
+    console.error('IBITE initialization error:',err);
+    setStatus('⚠️ El tablero no pudo completar la inicialización. Puedes cargar un Excel manualmente.');
+    try{ loadDemo(); }catch(e){ console.error(e); }
   }
-  setStatus('No se encontró el Excel automáticamente. Carga el archivo manualmente o mira los datos de ejemplo.');
-  loadDemo();
 }
 init();
 </script>
