@@ -27,6 +27,7 @@ You are the Lead Project Manager for this web development project. Your goal is 
   - Centralized `/demo/` hub for all project showcase tools.
   - Dental Clinic Portal moved to `/demo/dental/`.
   - Family Finance Planner hosted at `/demo/finance-planner/`.
+  - 3D printin Calculator
 - **Deployment**: Git-synced to Proxmox server via Nginx.
 
 ## Git Workflow & Push Protocol
