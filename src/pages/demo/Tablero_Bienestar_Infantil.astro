@@ -1,0 +1,886 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IBITE · Tablero de Bienestar Infantil y Adolescente</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --blue:#0b5b8c; --blue-dark:#083f61; --teal:#0f9b8e;
+  --red:#dc2626; --red-bg:#fee2e2;
+  --orange:#ea580c; --orange-bg:#ffedd5;
+  --amber:#d97706; --amber-bg:#fef3c7;
+  --green:#16a34a; --green-bg:#dcfce7;
+  --gray:#6b7280; --gray-bg:#eef1f4;
+  --card-bg:#ffffff; --page-bg:#f4f7fa; --text:#1e293b; --muted:#64748b;
+  --border:#e2e8f0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--page-bg);color:var(--text);}
+header.app-header{background:linear-gradient(135deg,var(--blue-dark),var(--blue) 60%,var(--teal));color:#fff;padding:18px 22px;}
+header.app-header .row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;}
+header.app-header h1{margin:0;font-size:1.35rem;}
+header.app-header p.sub{margin:4px 0 0;font-size:.85rem;opacity:.9;}
+.header-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.btn{cursor:pointer;border:none;border-radius:8px;padding:9px 14px;font-size:.85rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:filter .15s;}
+.btn:hover{filter:brightness(1.08);}
+.btn-primary{background:#fff;color:var(--blue-dark);}
+.btn-outline{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.5);}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-sm{padding:6px 10px;font-size:.78rem;}
+#fileInput{display:none;}
+#statusLine{font-size:.78rem;opacity:.9;margin-top:6px;}
+.banner{padding:10px 22px;font-size:.85rem;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+.banner.confidential{background:#fff7ed;color:#7c2d12;border-bottom:1px solid #fed7aa;}
+.banner.demo{background:#eff6ff;color:#1e3a8a;border-bottom:1px solid #bfdbfe;}
+.banner.cache{background:#f0fdf4;color:#14532d;border-bottom:1px solid #bbf7d0;}
+.banner button.link{background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;font-size:.85rem;padding:0;}
+nav.tabs{display:flex;gap:4px;background:#fff;padding:0 22px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20;}
+nav.tabs button{background:none;border:none;padding:14px 16px;font-size:.9rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;}
+nav.tabs button.active{color:var(--blue-dark);border-bottom-color:var(--teal);}
+.filters{background:#fff;border-bottom:1px solid var(--border);padding:10px 22px;display:flex;gap:10px;flex-wrap:wrap;align-items:end;position:sticky;top:49px;z-index:19;}
+.filters .field{display:flex;flex-direction:column;gap:3px;}
+.filters label{font-size:.7rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.02em;}
+.filters select,.filters input[type=date]{padding:6px 8px;border-radius:6px;border:1px solid var(--border);font-size:.82rem;min-width:130px;background:#fff;}
+main{padding:18px 22px 60px;max-width:1400px;margin:0 auto;}
+.tabpanel{display:none;}
+.tabpanel.active{display:block;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:20px;}
+.kpi{background:var(--card-bg);border-radius:12px;padding:14px 16px;border:1px solid var(--border);box-shadow:0 1px 2px rgba(0,0,0,.03);}
+.kpi .num{font-size:1.7rem;font-weight:800;line-height:1;}
+.kpi .lbl{font-size:.75rem;color:var(--muted);margin-top:6px;font-weight:600;}
+.kpi.crit .num{color:var(--red);}
+.kpi.alto .num{color:var(--orange);}
+.kpi.ok .num{color:var(--green);}
+.kpi.info .num{color:var(--blue);}
+.charts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.charts-grid .full{grid-column:1/-1;}
+@media(max-width:800px){.charts-grid{grid-template-columns:1fr;}}
+.chart-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.chart-card h3{margin:0 0 10px;font-size:.9rem;color:var(--text);}
+.chart-card .wrap{position:relative;height:260px;}
+.chart-card.small .wrap{height:220px;}
+.urgency-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.chip{border-radius:999px;padding:8px 14px;font-size:.8rem;font-weight:700;cursor:pointer;border:2px solid transparent;display:flex;gap:6px;align-items:center;}
+.chip.active{outline:2px solid rgba(0,0,0,.15);}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+.toolbar input[type=search]{flex:1;min-width:200px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:.85rem;}
+.toolbar label.chk{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);}
+.case-list{display:flex;flex-direction:column;gap:10px;}
+.case-card{background:#fff;border-radius:12px;border:1px solid var(--border);border-left:6px solid var(--gray);overflow:hidden;}
+.case-card summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;}
+.case-card summary::-webkit-details-marker{display:none;}
+.case-main{display:flex;flex-direction:column;gap:3px;}
+.case-main .name{font-weight:700;font-size:1rem;}
+.case-main .meta{font-size:.78rem;color:var(--muted);}
+.case-badges{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.badge{border-radius:999px;padding:4px 10px;font-size:.72rem;font-weight:700;white-space:nowrap;}
+.badge.outline{background:#fff;border:1px solid var(--border);color:var(--muted);}
+.case-detail{padding:0 16px 16px;border-top:1px dashed var(--border);}
+.case-detail .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px;}
+.case-detail .block{background:var(--gray-bg);border-radius:8px;padding:10px 12px;}
+.case-detail .block h4{margin:0 0 4px;font-size:.75rem;text-transform:uppercase;color:var(--muted);letter-spacing:.03em;}
+.case-detail .block p{margin:0;font-size:.86rem;}
+.indicator-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.8rem;}
+.indicator-table th,.indicator-table td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--border);}
+.action-box{margin-top:12px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 12px;}
+.action-box.crit{background:var(--red-bg);border-color:#fecaca;}
+.action-box strong{display:block;margin-bottom:2px;}
+.empty-state{max-width:640px;margin:60px auto;text-align:center;background:#fff;border:1px solid var(--border);border-radius:16px;padding:36px 28px;}
+.empty-state h2{margin-top:0;}
+.dropzone{border:2px dashed #93c5fd;border-radius:12px;padding:26px;margin:18px 0;background:#f8fbff;color:#1e40af;font-size:.9rem;}
+.dropzone.dragover{background:#dbeafe;}
+#dragOverlay{display:none;position:fixed;inset:0;background:rgba(11,91,140,.85);color:#fff;z-index:100;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;pointer-events:none;}
+footer.help{max-width:1400px;margin:0 auto;padding:0 22px 40px;}
+details.help-box{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-top:10px;}
+details.help-box summary{cursor:pointer;font-weight:700;}
+details.help-box ol,details.help-box ul{font-size:.87rem;line-height:1.5;color:var(--text);}
+.small-note{font-size:.75rem;color:var(--muted);margin-top:10px;}
+.hidden{display:none !important;}
+@media print{
+  nav.tabs,.filters,header .header-actions,.no-print,#tab-resumen{display:none !important;}
+  body{background:#fff;}
+  .case-card{break-inside:avoid;}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="row">
+    <div>
+      <h1>🧭 IBITE — Tablero de Bienestar Infantil y Adolescente</h1>
+      <p class="sub">Monitoreo psicosocial post-sismo · Instituciones educativas de Colombia</p>
+      <div id="statusLine">Iniciando…</div>
+    </div>
+    <div class="header-actions no-print">
+      <button class="btn btn-primary" id="btnLoad">📂 Cargar / Actualizar Excel</button>
+      <button class="btn btn-outline" id="btnDemo">🧪 Ver datos de ejemplo</button>
+      <input type="file" id="fileInput" accept=".xlsx,.xls">
+    </div>
+  </div>
+</header>
+
+<div class="banner confidential no-print" id="confBanner">
+  🔒 <strong>Información confidencial de menores de edad.</strong> Contiene datos sensibles de salud mental. Manéjese conforme al protocolo institucional de protección de datos; no comparta este archivo ni el Excel fuera de los responsables autorizados.
+  <button class="link" id="closeConfBanner">Ocultar</button>
+</div>
+<div class="banner demo no-print hidden" id="demoBanner">
+  🧪 <strong>Estás viendo datos de EJEMPLO</strong> (ficticios) para mostrar cómo funciona el tablero. Carga tu Excel real con el botón "Cargar / Actualizar Excel".
+</div>
+<div class="banner cache no-print hidden" id="cacheBanner">
+  💾 Mostrando la última carga guardada en este navegador. <span id="cacheTimestamp"></span>
+  <button class="link" id="btnReloadFromCache">Actualizar con un Excel nuevo</button>
+</div>
+
+<div id="dragOverlay">⬇️ Suelta aquí el archivo Excel (.xlsx) para cargarlo</div>
+
+<div id="emptyState" class="empty-state">
+  <h2>Aún no hay datos cargados</h2>
+  <p>Este tablero lee automáticamente el archivo <code id="expectedFilename">IBITE Manizales (respuestas).xlsx</code> cuando es posible, y recuerda la última carga en este navegador. Si no se cargó solo, usa una de estas opciones:</p>
+  <div class="dropzone" id="dropzoneEmpty">📥 Arrastra aquí el archivo Excel, o haz clic en "Cargar / Actualizar Excel" arriba</div>
+  <button class="btn btn-outline" id="btnDemo2" style="background:#0b5b8c;color:#fff;">🧪 Mientras tanto, ver datos de ejemplo</button>
+</div>
+
+<nav class="tabs hidden" id="tabsNav">
+  <button class="tab active" data-tab="resumen">📊 Resumen General</button>
+  <button class="tab" data-tab="casos">🚨 Casos Prioritarios</button>
+</nav>
+
+<div class="filters hidden no-print" id="filtersBar">
+  <div class="field">
+    <label>Institución</label>
+    <select id="fInstitucion"><option value="">Todas</option></select>
+  </div>
+  <div class="field">
+    <label>Grado</label>
+    <select id="fGrado"><option value="">Todos</option></select>
+  </div>
+  <div class="field">
+    <label>Comuna / corregimiento</label>
+    <select id="fComuna"><option value="">Todas</option></select>
+  </div>
+  <div class="field">
+    <label>Quién respondió</label>
+    <select id="fRama"><option value="">Todos</option></select>
+  </div>
+  <div class="field">
+    <label>Desde</label>
+    <input type="date" id="fDesde">
+  </div>
+  <div class="field">
+    <label>Hasta</label>
+    <input type="date" id="fHasta">
+  </div>
+  <div class="field">
+    <button class="btn btn-ghost btn-sm" id="btnClearFilters">Limpiar filtros</button>
+  </div>
+</div>
+
+<main>
+  <section id="tab-resumen" class="tabpanel active">
+    <div class="kpi-grid" id="kpiGrid"></div>
+    <div class="charts-grid" id="chartsGrid">
+      <div class="chart-card full"><h3>🚦 Nivel de urgencia (según plazo de acción recomendado)</h3><div class="wrap"><canvas id="chartUrgencia"></canvas></div></div>
+      <div class="chart-card"><h3>Indicador de riesgo general</h3><div class="wrap"><canvas id="chartIndicador"></canvas></div></div>
+      <div class="chart-card"><h3>Perfil operativo</h3><div class="wrap"><canvas id="chartPerfil"></canvas></div></div>
+      <div class="chart-card"><h3>Malestar combinado</h3><div class="wrap"><canvas id="chartCombinado"></canvas></div></div>
+      <div class="chart-card"><h3>Reintegración y permanencia escolar</h3><div class="wrap"><canvas id="chartReintegra"></canvas></div></div>
+      <div class="chart-card"><h3>Registros por institución educativa</h3><div class="wrap"><canvas id="chartInstitucion"></canvas></div></div>
+      <div class="chart-card"><h3>Registros por grado</h3><div class="wrap"><canvas id="chartGrado"></canvas></div></div>
+      <div class="chart-card"><h3>Registros por comuna / corregimiento</h3><div class="wrap"><canvas id="chartComuna"></canvas></div></div>
+      <div class="chart-card full"><h3>Respuestas recibidas por día</h3><div class="wrap"><canvas id="chartTrend"></canvas></div></div>
+    </div>
+  </section>
+
+  <section id="tab-casos" class="tabpanel">
+    <div class="urgency-chips" id="urgencyChips"></div>
+    <div class="toolbar">
+      <input type="search" id="searchBox" placeholder="Buscar por nombre, institución, grado o comuna…">
+      <label class="chk"><input type="checkbox" id="onlySeguridad"> Solo con alerta de seguridad</label>
+      <button class="btn btn-ghost btn-sm" id="btnExportCSV">⬇️ Exportar CSV</button>
+      <button class="btn btn-ghost btn-sm" id="btnPrint">🖨️ Imprimir lista</button>
+    </div>
+    <p class="small-note" id="casosCount"></p>
+    <div class="case-list" id="caseList"></div>
+  </section>
+</main>
+
+<footer class="help no-print">
+  <details class="help-box">
+    <summary>ℹ️ Cómo usar y actualizar este tablero</summary>
+    <ol>
+      <li>Guarda este archivo HTML en <strong>la misma carpeta</strong> donde guardas el Excel exportado del formulario de Google ("IBITE [Colegio] (respuestas).xlsx").</li>
+      <li>Cada vez que quieras ver las respuestas más recientes: descarga/guarda de nuevo el Excel actualizado en esa carpeta y luego abre este HTML (o haz clic en "Cargar / Actualizar Excel" y selecciona el archivo).</li>
+      <li>La carga 100% automática solo es posible si este HTML se abre desde un servidor web o intranet (no con doble clic). Al abrir con doble clic, el navegador bloquea por seguridad la lectura automática de archivos locales — por eso este tablero recuerda tu última carga en el navegador y te deja actualizarla con un clic.</li>
+      <li>El tablero lee la hoja <strong>"Puntuaciones"</strong> de tu Excel, que ya trae todos los cálculos de riesgo (no necesitas tocar fórmulas).</li>
+      <li>La priorización de la pestaña "Casos Prioritarios" sigue la misma lógica de la hoja "Acciones" de tu Excel: alerta de seguridad o seguridad no aclarada → mismo día; desescolarización o riesgo material grave → 48–72 horas; deterioro funcional → dentro de la semana; el resto según la columna "Plazo de acción".</li>
+      <li>Cambia el nombre de archivo esperado o el identificador de la institución en las primeras líneas del código si vas a usar esta misma plantilla en otro colegio (para que no se mezcle la caché del navegador entre colegios).</li>
+    </ol>
+    <p class="small-note">Todo el procesamiento ocurre en tu propio navegador: los datos no se envían a ningún servidor. Solo se descargan (una vez, y quedan en caché) las librerías públicas para leer Excel (SheetJS) y dibujar gráficos (Chart.js), por lo que se necesita conexión a internet la primera vez que se abre en cada computador.</p>
+    <p class="small-note">Las bandas de riesgo son orientativas/operativas, no un diagnóstico clínico (según la propia nota del instrumento IBITE-17 en la hoja "Escalas" de tu Excel).</p>
+  </details>
+</footer>
+
+<script>
+/* =========================================================
+   CONFIGURACIÓN — cambia esto si adaptas la plantilla a otro colegio
+   ========================================================= */
+const CONFIG = {
+  EXPECTED_FILENAME: "IBITE Manizales (respuestas).xlsx",
+  SHEET_NAME: "Puntuaciones",
+  STORAGE_KEY: "ibite_dashboard_cache::Manizales_v1"
+};
+document.getElementById('expectedFilename').textContent = CONFIG.EXPECTED_FILENAME;
+
+/* Column index map for the 'Puntuaciones' sheet (0-based, header row = row 0) */
+const COL = {
+  FILA:0, TS:1, RAMA:2, NOMBRE:3, TEL:4, EDAD:5, SEXO:6, INST:7, GRADO:8, COMUNA:9,
+  CONVIV_HERIDO:10, SALIDA_VIVIENDA:11, DANOS_VIVIENDA:12, DIFICULTADES_SERV:13, CAMBIO_RESID:14,
+  I1:15,I2:16,I3:17,I4:18,I5:19,I6:20,I7:21,I8:22,I9:23,I10:24,I11:25,I12:26,I13:27,I14:28,I15:29,I16:30,I17:31,
+  POSTRAUM_SCORE:32, POSTRAUM_NIVEL:33,
+  GENFUNC_SCORE:34, DETERIORO_FLAG:35,
+  COMBINADO_SCORE:36, COMBINADO_NIVEL:37,
+  ALERTA_SEGURIDAD:38,
+  REINTEGRA_SCORE:39, REINTEGRA_NIVEL:40, DESESCOLAR_FLAG:41,
+  RECURSOS_PERS_SCORE:42, RECURSOS_PERS_NIVEL:43,
+  RECURSOS_FAM_SCORE:44, RECURSOS_FAM_NIVEL:45,
+  RIESGO_MATERIAL:46, NECESIDADES_BASICAS:47,
+  CUESTIONARIO_COMPLETO:48,
+  PERFIL:49, INDICADOR_GENERAL:50, ACCION_RECOMENDADA:51, PLAZO:52, RUTA:53, ACCIONES_ESPECIFICAS:54
+};
+
+const INDICATOR_LABELS = ["Intrusión","Pesadillas/sueño","Evitación","Hiperalerta","Malestar general","Funcionamiento",
+"Ideación (seguridad)","Autolesión (seguridad)","Miedo/rechazo escolar","Concentración","Ausentismo",
+"Autorregulación","Disfrute","Búsqueda de ayuda","Contención familiar","Sobrecarga parental (inv.)","Red de apoyo"];
+
+const URGENCY_META = {
+ 0:{label:'Prioridad máxima — actuar hoy mismo', short:'Hoy mismo', color:'#dc2626', bg:'#fee2e2'},
+ 1:{label:'Prioridad alta — 48–72 horas', short:'48–72 h', color:'#ea580c', bg:'#ffedd5'},
+ 2:{label:'Prioridad media — dentro de la semana', short:'Esta semana', color:'#d97706', bg:'#fef3c7'},
+ 3:{label:'Seguimiento habitual', short:'Habitual', color:'#16a34a', bg:'#dcfce7'},
+ 4:{label:'Sin clasificar — revisar manualmente', short:'Sin clasificar', color:'#6b7280', bg:'#f1f5f9'}
+};
+
+/* =========================================================
+   ESTADO
+   ========================================================= */
+const state = {
+  cases: [],
+  meta: null,        // {savedAt, source: 'file'|'cache'|'demo'|'fetch'}
+  filters: {institucion:'', grado:'', comuna:'', rama:'', desde:'', hasta:''},
+  tab2: {urgency:null, search:'', onlySeguridad:false},
+  charts: {}
+};
+
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+function normalize(s){
+  return (s===null||s===undefined?'':String(s)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+}
+function isBlank(v){ return v===null || v===undefined || String(v).trim()===''; }
+function isFlagYes(v){ const s = normalize(v); return s.startsWith('si'); }
+function toNum(v){ const n = typeof v === 'number' ? v : parseFloat(v); return isNaN(n) ? null : n; }
+function toDate(v){
+  if (v instanceof Date) return v;
+  if (v===null || v===undefined || v==='') return null;
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+}
+function fmtDate(d){
+  if(!d) return '—';
+  return d.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) + ' ' + d.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+}
+function groupCount(arr, keyFn){
+  const map = new Map();
+  arr.forEach(item=>{
+    const k = keyFn(item);
+    const key = (k===null||k===undefined||k==='') ? '(Sin dato)' : k;
+    map.set(key, (map.get(key)||0)+1);
+  });
+  return map;
+}
+function gradeOrder(g){
+  const s = normalize(g);
+  if(!s) return 999;
+  if(s.includes('transicion')||s.includes('preescolar')||s.includes('jardin')||s.includes('prejardin')) return -1;
+  const m = s.match(/(\d+)/);
+  if(m) return parseInt(m[1],10);
+  return 998;
+}
+function csvEscape(v){
+  v = v===null||v===undefined ? '' : String(v);
+  if(/[",\n;]/.test(v)) v = '"' + v.replace(/"/g,'""') + '"';
+  return v;
+}
+function dateStamp(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+
+/* =========================================================
+   CLASIFICACIÓN DE URGENCIA (alineada con la hoja 'Acciones' del Excel)
+   ========================================================= */
+function classifyPlazo(plazo){
+  const p = normalize(plazo);
+  if(!p) return null;
+  if(p.includes('mismo dia')) return 0;
+  if(p.includes('48') || p.includes('72') || p.includes('hora')) return 1;
+  if(p.includes('prioritario')) return 1;
+  if(p.includes('semana')) return 2;
+  if(p.includes('segun valoracion')) return 2;
+  if(p.includes('segun senal')) return 2;
+  if(p.includes('habitual')) return 3;
+  return null;
+}
+function classifyIndicador(indicador){
+  const s = normalize(indicador);
+  if(!s) return null;
+  if(s.includes('critico')) return 0;
+  if(s.includes('alto')) return 1;
+  if(s.includes('moderado')) return 2;
+  if(s.includes('bajo')) return 3;
+  return null;
+}
+function alertaClass(v){
+  const s = normalize(v);
+  if(!s) return 'ninguna';
+  if(s.includes('no aclarada') || s.includes('aclarar')) return 'no_aclarada';
+  if(s.startsWith('sin') || s.startsWith('no')) return 'ninguna';
+  if(s.includes('alerta')) return 'activa';
+  if(s.startsWith('si')) return 'activa';
+  return 'ninguna';
+}
+function computeUrgency(c){
+  let rank = classifyPlazo(c.plazo);
+  if(rank===null) rank = classifyIndicador(c.indicadorGeneral);
+  if(rank===null) rank = 4;
+  const ac = alertaClass(c.alertaSeguridad);
+  if(ac==='activa' || ac==='no_aclarada') rank = Math.min(rank,0);
+  if(isFlagYes(c.riesgoMaterial)) rank = Math.min(rank,1);
+  if(isFlagYes(c.desescolarFlag)) rank = Math.min(rank,1);
+  if(isFlagYes(c.deterioroFlag)) rank = Math.min(rank,2);
+  return rank;
+}
+
+/* =========================================================
+   PARSEO DEL EXCEL
+   ========================================================= */
+function parseWorkbook(wb){
+  const wsname = wb.SheetNames.includes(CONFIG.SHEET_NAME) ? CONFIG.SHEET_NAME : wb.SheetNames[0];
+  const ws = wb.Sheets[wsname];
+  const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:null});
+  const cases = [];
+  let totalAttempted = 0, totalSinDatos = 0;
+
+  for(let i=1;i<rows.length;i++){
+    const r = rows[i];
+    if(!r) continue;
+    const fila = r[COL.FILA];
+    const ts = toDate(r[COL.TS]);
+    if(fila===null && !ts) continue;   // fila de plantilla sin usar
+    if(!ts) continue;                  // sin marca temporal = no es un envío real
+    totalAttempted++;
+    const nombre = r[COL.NOMBRE];
+    if(isBlank(nombre)){
+      totalSinDatos++;
+      continue; // no aceptó participar / no continuó
+    }
+    const ind = {};
+    for(let k=0;k<17;k++){ ind[k+1] = toNum(r[COL.I1+k]); }
+    cases.push({
+      fila, ts, rama: r[COL.RAMA], nombre: String(nombre).trim(), telefono: r[COL.TEL],
+      edad: toNum(r[COL.EDAD]), sexo: r[COL.SEXO], institucion: r[COL.INST], grado: r[COL.GRADO], comuna: r[COL.COMUNA],
+      convivienteHerido: r[COL.CONVIV_HERIDO], salidaVivienda: r[COL.SALIDA_VIVIENDA], danosVivienda: r[COL.DANOS_VIVIENDA],
+      dificultadesServ: r[COL.DIFICULTADES_SERV], cambioResid: r[COL.CAMBIO_RESID],
+      ind,
+      postraumScore: toNum(r[COL.POSTRAUM_SCORE]), postraumNivel: r[COL.POSTRAUM_NIVEL],
+      genFuncScore: toNum(r[COL.GENFUNC_SCORE]), deterioroFlag: r[COL.DETERIORO_FLAG],
+      combinadoScore: toNum(r[COL.COMBINADO_SCORE]), combinadoNivel: r[COL.COMBINADO_NIVEL],
+      alertaSeguridad: r[COL.ALERTA_SEGURIDAD],
+      reintegraScore: toNum(r[COL.REINTEGRA_SCORE]), reintegraNivel: r[COL.REINTEGRA_NIVEL], desescolarFlag: r[COL.DESESCOLAR_FLAG],
+      recursosPersScore: toNum(r[COL.RECURSOS_PERS_SCORE]), recursosPersNivel: r[COL.RECURSOS_PERS_NIVEL],
+      recursosFamScore: toNum(r[COL.RECURSOS_FAM_SCORE]), recursosFamNivel: r[COL.RECURSOS_FAM_NIVEL],
+      riesgoMaterial: r[COL.RIESGO_MATERIAL], necesidadesBasicas: r[COL.NECESIDADES_BASICAS],
+      cuestionarioCompleto: r[COL.CUESTIONARIO_COMPLETO],
+      perfil: r[COL.PERFIL], indicadorGeneral: r[COL.INDICADOR_GENERAL],
+      accionRecomendada: r[COL.ACCION_RECOMENDADA], plazo: r[COL.PLAZO], ruta: r[COL.RUTA],
+      accionesEspecificas: r[COL.ACCIONES_ESPECIFICAS]
+    });
+  }
+  return {cases, totalAttempted, totalSinDatos};
+}
+
+/* =========================================================
+   CARGA: fetch automático, cache, archivo manual, drag&drop, demo
+   ========================================================= */
+function setStatus(txt){ document.getElementById('statusLine').textContent = txt; }
+
+function applyLoadedData(cases, sourceLabel, extra){
+  state.cases = cases;
+  state.meta = Object.assign({source: sourceLabel, savedAt: new Date()}, extra||{});
+  document.getElementById('emptyState').classList.add('hidden');
+  document.getElementById('tabsNav').classList.remove('hidden');
+  document.getElementById('filtersBar').classList.remove('hidden');
+  document.getElementById('demoBanner').classList.toggle('hidden', sourceLabel!=='demo');
+  document.getElementById('cacheBanner').classList.toggle('hidden', sourceLabel!=='cache');
+  if(sourceLabel==='cache' && extra && extra.savedAt){
+    document.getElementById('cacheTimestamp').textContent = 'Guardado el ' + fmtDate(new Date(extra.savedAt)) + '.';
+  }
+  populateFilterOptions();
+  renderAll();
+  const labelMap = {file:'Excel cargado', fetch:'Excel cargado automáticamente', cache:'datos guardados en este navegador', demo:'datos de EJEMPLO'};
+  setStatus('Mostrando ' + (labelMap[sourceLabel]||sourceLabel) + ' · ' + state.cases.length + ' casos con cuestionario iniciado.');
+}
+
+function saveToCache(){
+  try{
+    const serial = state.cases.map(c=>Object.assign({}, c, {ts: c.ts ? c.ts.toISOString() : null}));
+    localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify({savedAt: new Date().toISOString(), cases: serial}));
+  }catch(e){ console.warn('No se pudo guardar en caché local:', e); }
+}
+function loadFromCache(){
+  try{
+    const raw = localStorage.getItem(CONFIG.STORAGE_KEY);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    parsed.cases.forEach(c=>{ c.ts = c.ts ? new Date(c.ts) : null; });
+    return parsed;
+  }catch(e){ return null; }
+}
+
+async function tryAutoFetch(){
+  try{
+    const res = await fetch(encodeURI('./' + CONFIG.EXPECTED_FILENAME), {cache:'no-store'});
+    if(!res.ok) return false;
+    const buf = await res.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array', cellDates:true});
+    const {cases} = parseWorkbook(wb);
+    applyLoadedData(cases, 'fetch');
+    saveToCache();
+    return true;
+  }catch(e){ return false; }
+}
+
+function handleFile(file){
+  setStatus('Leyendo ' + file.name + '…');
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const wb = XLSX.read(e.target.result, {type:'array', cellDates:true});
+      const {cases, totalAttempted, totalSinDatos} = parseWorkbook(wb);
+      if(cases.length===0){
+        alert('El archivo se leyó, pero no se encontraron registros con datos en la hoja "' + CONFIG.SHEET_NAME + '". Verifica que sea el Excel correcto.');
+      }
+      applyLoadedData(cases, 'file', {totalAttempted, totalSinDatos});
+      saveToCache();
+    }catch(err){
+      console.error(err);
+      alert('No se pudo leer el archivo. Verifica que sea un Excel (.xlsx) exportado del formulario IBITE.\n\nDetalle técnico: ' + err.message);
+      setStatus('Error al leer el archivo.');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function generateDemoCases(){
+  const escuelas = ['IE Ejemplo Bolívar','IE Ejemplo San José','IE Ejemplo La Aurora'];
+  const comunas = ['Comuna 1 (ejemplo)','Comuna 3 (ejemplo)','Comuna 5 (ejemplo)','Corregimiento El Remanso (ejemplo)'];
+  const grados = ['Transición','1.º','3.º','5.º','7.º','9.º','11.º'];
+  const perfiles = ['1 - Bienestar preservado','2 - Recursos moderados','3 - Vulnerabilidad global','4 - Bajo bienestar individual/familiar','5 - Recursos mixtos'];
+  const profiles = [
+    {plazo:'MISMO DÍA', indicador:'Crítico - riesgo de seguridad', alerta:'Alerta - valoración el mismo día', material:'No', deter:'Sí', desesc:'Sí', accion:'VALORACIÓN DE SEGURIDAD EL MISMO DÍA', ruta:'Profesional capacitado / 123 opción 3; activar Código Dorado si se confirma', combinadoNivel:'Elevado', reintegraNivel:'Elevado'},
+    {plazo:'48–72 HORAS', indicador:'Alto - desescolarización', alerta:'Sin alerta', material:'Sí', deter:'No', desesc:'Sí', accion:'Contacto con la institución educativa; plan de reingreso gradual', ruta:'Rectoría, docente orientador y Secretaría de Educación', combinadoNivel:'Intermedio', reintegraNivel:'Elevado'},
+    {plazo:'DENTRO DE LA SEMANA', indicador:'Alto - malestar/deterioro', alerta:'Sin alerta', material:'No', deter:'Sí', desesc:'No', accion:'Valoración individual y acompañamiento psicosocial focalizado', ruta:'Docente orientador / Zona de Orientación Escolar', combinadoNivel:'Elevado', reintegraNivel:'Intermedio'},
+    {plazo:'SEGUIMIENTO HABITUAL', indicador:'Moderado - recursos mixtos', alerta:'Sin alerta', material:'No', deter:'No', desesc:'No', accion:'Promoción y prevención universal o selectiva en el aula', ruta:'Entornos Educativos Saludables / docente orientador', combinadoNivel:'Intermedio', reintegraNivel:'Bajo'},
+    {plazo:'SEGUIMIENTO HABITUAL', indicador:'Bajo - bienestar preservado', alerta:'Sin alerta', material:'No', deter:'No', desesc:'No', accion:'Promoción y prevención universal en el aula', ruta:'Entornos Educativos Saludables / docente orientador', combinadoNivel:'Bajo', reintegraNivel:'Bajo'}
+  ];
+  const cases = [];
+  let idCounter = 1;
+  const counts = [3,5,6,6,4]; // cuántos casos por perfil de urgencia (crítico->bajo)
+  const startDate = new Date(); startDate.setDate(startDate.getDate()-14);
+  profiles.forEach((p, idx)=>{
+    for(let i=0;i<counts[idx];i++){
+      const ts = new Date(startDate.getTime() + Math.random()*14*24*3600*1000);
+      const ind = {};
+      for(let k=1;k<=17;k++) ind[k] = Math.floor(Math.random()*4);
+      cases.push({
+        fila: idCounter, ts,
+        rama: Math.random()>0.4 ? 'A' : 'B',
+        nombre: 'Estudiante Ejemplo ' + idCounter,
+        telefono: '300' + String(1000000+idCounter).slice(0,7),
+        edad: Math.floor(Math.random()*13)+5,
+        sexo: Math.random()>0.5 ? 'Femenino.' : 'Masculino.',
+        institucion: escuelas[idCounter % escuelas.length],
+        grado: grados[idCounter % grados.length],
+        comuna: comunas[idCounter % comunas.length],
+        convivienteHerido: 'No.', salidaVivienda: 'No.', danosVivienda: 'Sin daños visibles.',
+        dificultadesServ: 'Ninguna.', cambioResid: 'No.',
+        ind,
+        postraumScore: Math.floor(Math.random()*12), postraumNivel: p.combinadoNivel,
+        genFuncScore: Math.floor(Math.random()*6), deterioroFlag: p.deter,
+        combinadoScore: Math.floor(Math.random()*18), combinadoNivel: p.combinadoNivel,
+        alertaSeguridad: p.alerta,
+        reintegraScore: Math.floor(Math.random()*9), reintegraNivel: p.reintegraNivel, desescolarFlag: p.desesc,
+        recursosPersScore: Math.floor(Math.random()*9), recursosPersNivel: 'Intermedio',
+        recursosFamScore: Math.floor(Math.random()*9), recursosFamNivel: 'Intermedio',
+        riesgoMaterial: p.material, necesidadesBasicas: Math.random()>0.6?'Sí':'No',
+        cuestionarioCompleto: 'Sí',
+        perfil: perfiles[idx % perfiles.length], indicadorGeneral: p.indicador,
+        accionRecomendada: p.accion, plazo: p.plazo, ruta: p.ruta,
+        accionesEspecificas: 'Ejemplo de acciones específicas combinadas según las señales presentes en este caso ficticio.'
+      });
+      idCounter++;
+    }
+  });
+  return cases;
+}
+
+/* =========================================================
+   FILTROS
+   ========================================================= */
+function uniqueSorted(arr){ return Array.from(new Set(arr.filter(v=>!isBlank(v)))).sort((a,b)=>String(a).localeCompare(String(b),'es')); }
+
+function populateFilterOptions(){
+  const insts = uniqueSorted(state.cases.map(c=>c.institucion));
+  const comunas = uniqueSorted(state.cases.map(c=>c.comuna));
+  const grados = uniqueSorted(state.cases.map(c=>c.grado)).sort((a,b)=>gradeOrder(a)-gradeOrder(b));
+  const ramas = uniqueSorted(state.cases.map(c=>c.rama));
+
+  fillSelect('fInstitucion', insts, 'Todas');
+  fillSelect('fComuna', comunas, 'Todas');
+  fillSelect('fGrado', grados, 'Todos');
+  fillSelect('fRama', ramas, 'Todos', v => v==='A' ? 'A · Cuidador (5–10 años)' : (v==='B' ? 'B · Adolescente (11–19 años)' : v));
+}
+function fillSelect(id, values, allLabel, labelFn){
+  const sel = document.getElementById(id);
+  const current = sel.value;
+  sel.innerHTML = '<option value="">'+allLabel+'</option>' + values.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(labelFn?labelFn(v):v)}</option>`).join('');
+  if(values.includes(current)) sel.value = current;
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+function getFilteredCases(){
+  const f = state.filters;
+  return state.cases.filter(c=>{
+    if(f.institucion && c.institucion!==f.institucion) return false;
+    if(f.grado && c.grado!==f.grado) return false;
+    if(f.comuna && c.comuna!==f.comuna) return false;
+    if(f.rama && c.rama!==f.rama) return false;
+    if(f.desde && c.ts && c.ts < new Date(f.desde)) return false;
+    if(f.hasta && c.ts && c.ts > new Date(f.hasta + 'T23:59:59')) return false;
+    return true;
+  });
+}
+
+/* =========================================================
+   RENDER — TAB 1 (Resumen general)
+   ========================================================= */
+function kpiCard(cls, num, lbl){ return `<div class="kpi ${cls}"><div class="num">${num}</div><div class="lbl">${lbl}</div></div>`; }
+
+function renderKPIs(cases){
+  const total = cases.length;
+  const completos = cases.filter(c=>isFlagYes(c.cuestionarioCompleto)).length;
+  const alertas = cases.filter(c=>alertaClass(c.alertaSeguridad)!=='ninguna').length;
+  const materialGrave = cases.filter(c=>isFlagYes(c.riesgoMaterial)).length;
+  const deterioro = cases.filter(c=>isFlagYes(c.deterioroFlag)).length;
+  const desescolar = cases.filter(c=>isFlagYes(c.desescolarFlag)).length;
+  const perfil3 = cases.filter(c=>normalize(c.perfil).startsWith('3')).length;
+  const criticos = cases.filter(c=>computeUrgency(c)===0).length;
+
+  const html = [
+    kpiCard('info', total, 'Total de casos con cuestionario iniciado'),
+    kpiCard('ok', completos, 'Cuestionarios completos'),
+    kpiCard('crit', criticos, 'Casos críticos (acción hoy)'),
+    kpiCard('crit', alertas, 'Alertas de seguridad (Í7/Í8)'),
+    kpiCard('alto', materialGrave, 'Riesgo material grave (vivienda/desplazamiento)'),
+    kpiCard('alto', deterioro, 'Bandera de deterioro funcional'),
+    kpiCard('alto', desescolar, 'Bandera de desescolarización'),
+    kpiCard('alto', perfil3, 'Perfil 3 — Vulnerabilidad global'),
+  ].join('');
+  document.getElementById('kpiGrid').innerHTML = html;
+}
+
+function destroyChart(id){ if(state.charts[id]){ state.charts[id].destroy(); delete state.charts[id]; } }
+function makeChart(id, config){
+  destroyChart(id);
+  const ctx = document.getElementById(id).getContext('2d');
+  state.charts[id] = new Chart(ctx, config);
+}
+const PALETTE = ['#0b5b8c','#0f9b8e','#d97706','#dc2626','#7c3aed','#0891b2','#65a30d','#db2777','#6b7280','#ea580c'];
+
+function renderCharts(cases){
+  // Urgencia
+  const urgCounts = [0,0,0,0,0];
+  cases.forEach(c=> urgCounts[computeUrgency(c)]++ );
+  makeChart('chartUrgencia', {
+    type:'bar',
+    data:{ labels:[0,1,2,3,4].map(k=>URGENCY_META[k].label),
+      datasets:[{ data:urgCounts, backgroundColor:[0,1,2,3,4].map(k=>URGENCY_META[k].color) }] },
+    options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}} }
+  });
+
+  simpleCountChart('chartIndicador','doughnut', cases, c=>c.indicadorGeneral, {colorByRank: classifyIndicador});
+  simpleCountChart('chartPerfil','bar', cases, c=>c.perfil, {});
+  simpleCountChart('chartCombinado','bar', cases, c=>c.combinadoNivel, {});
+  simpleCountChart('chartReintegra','bar', cases, c=>c.reintegraNivel, {});
+  simpleCountChart('chartInstitucion','bar', cases, c=>c.institucion, {horizontal:true});
+  simpleCountChart('chartGrado','bar', cases, c=>c.grado, {sortFn:(a,b)=>gradeOrder(a[0])-gradeOrder(b[0])});
+  simpleCountChart('chartComuna','bar', cases, c=>c.comuna, {horizontal:true});
+
+  // Tendencia por día
+  const dayMap = groupCount(cases, c=> c.ts ? c.ts.toISOString().slice(0,10) : null);
+  const days = Array.from(dayMap.keys()).filter(d=>d!=='(Sin dato)').sort();
+  makeChart('chartTrend', {
+    type:'line',
+    data:{ labels: days, datasets:[{ label:'Respuestas', data: days.map(d=>dayMap.get(d)), borderColor:'#0b5b8c', backgroundColor:'rgba(11,91,140,.15)', fill:true, tension:.25 }] },
+    options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}} }
+  });
+}
+
+function simpleCountChart(id, type, cases, keyFn, opts){
+  opts = opts || {};
+  const map = groupCount(cases, keyFn);
+  let entries = Array.from(map.entries());
+  if(opts.sortFn) entries.sort(opts.sortFn); else entries.sort((a,b)=>b[1]-a[1]);
+  const labels = entries.map(e=>e[0]);
+  const data = entries.map(e=>e[1]);
+  let colors;
+  if(opts.colorByRank){
+    const rankColors = {0:'#dc2626',1:'#ea580c',2:'#d97706',3:'#16a34a'};
+    colors = labels.map(l=>{ const r = opts.colorByRank(l); return r===null||r===undefined ? '#6b7280' : (rankColors[r]||'#6b7280'); });
+  } else {
+    colors = labels.map((_,i)=>PALETTE[i%PALETTE.length]);
+  }
+  makeChart(id, {
+    type: type==='doughnut' ? 'doughnut' : 'bar',
+    data:{ labels, datasets:[{ data, backgroundColor:colors }] },
+    options: type==='doughnut'
+      ? { plugins:{legend:{position:'right', labels:{boxWidth:12,font:{size:10}}}} }
+      : { indexAxis: opts.horizontal ? 'y' : 'x', plugins:{legend:{display:false}}, scales:{ [opts.horizontal?'x':'y']:{beginAtZero:true, ticks:{precision:0}} } }
+  });
+}
+
+/* =========================================================
+   RENDER — TAB 2 (Casos prioritarios)
+   ========================================================= */
+function renderUrgencyChips(cases){
+  const counts = [0,0,0,0,0];
+  cases.forEach(c=>counts[computeUrgency(c)]++);
+  const chips = [0,1,2,3,4].map(k=>{
+    const m = URGENCY_META[k];
+    const active = state.tab2.urgency===k ? 'active' : '';
+    return `<button class="chip ${active}" data-urg="${k}" style="background:${m.bg};color:${m.color}">${m.short}: ${counts[k]}</button>`;
+  }).join('');
+  const allActive = state.tab2.urgency===null ? 'active' : '';
+  document.getElementById('urgencyChips').innerHTML =
+    `<button class="chip ${allActive}" data-urg="all" style="background:#e2e8f0;color:#1e293b">Todos: ${cases.length}</button>` + chips;
+
+  document.querySelectorAll('#urgencyChips .chip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const v = btn.getAttribute('data-urg');
+      state.tab2.urgency = v==='all' ? null : parseInt(v,10);
+      renderTab2();
+    });
+  });
+}
+
+function badge(text, color, bg){ return `<span class="badge" style="color:${color};background:${bg}">${escapeHtml(text)}</span>`; }
+function badgeOutline(text){ return `<span class="badge outline">${escapeHtml(text)}</span>`; }
+
+function renderCaseList(cases){
+  const container = document.getElementById('caseList');
+  document.getElementById('casosCount').textContent = cases.length + ' caso(s) mostrados de ' + state.cases.length + ' en total.';
+  if(cases.length===0){ container.innerHTML = '<p class="small-note">No hay casos que coincidan con los filtros seleccionados.</p>'; return; }
+
+  container.innerHTML = cases.map(c=>{
+    const urg = computeUrgency(c);
+    const meta = URGENCY_META[urg];
+    const ac = alertaClass(c.alertaSeguridad);
+    const badges = [];
+    if(ac==='activa') badges.push(badge('⚠ Alerta de seguridad', '#991b1b', '#fee2e2'));
+    if(ac==='no_aclarada') badges.push(badge('❓ Seguridad no aclarada', '#9a3412', '#ffedd5'));
+    if(isFlagYes(c.riesgoMaterial)) badges.push(badge('🏚 Riesgo material grave', '#9a3412', '#ffedd5'));
+    if(isFlagYes(c.deterioroFlag)) badges.push(badge('📉 Deterioro funcional', '#92400e', '#fef3c7'));
+    if(isFlagYes(c.desescolarFlag)) badges.push(badge('🏫 Desescolarización', '#92400e', '#fef3c7'));
+    if(isFlagYes(c.necesidadesBasicas)) badges.push(badgeOutline('Necesidades básicas afectadas'));
+    if(!isFlagYes(c.cuestionarioCompleto)) badges.push(badgeOutline('Cuestionario incompleto'));
+
+    const indicatorRows = INDICATOR_LABELS.map((lbl,i)=>{
+      const v = c.ind[i+1];
+      return `<tr><td>Í${i+1} ${lbl}</td><td>${v===null||v===undefined?'—':v}</td></tr>`;
+    }).join('');
+
+    return `<details class="case-card" style="border-left-color:${meta.color}">
+      <summary>
+        <div class="case-main">
+          <span class="name">${escapeHtml(c.nombre)}</span>
+          <span class="meta">${c.edad?c.edad+' años · ':''}${escapeHtml(c.sexo||'')} · ${escapeHtml(c.institucion||'Sin institución')} · Grado ${escapeHtml(c.grado||'—')} · ${escapeHtml(c.comuna||'Sin comuna')} · Registrado: ${fmtDate(c.ts)}</span>
+        </div>
+        <div class="case-badges">
+          <span class="badge" style="background:${meta.bg};color:${meta.color}">${meta.label}</span>
+          ${badges.join('')}
+        </div>
+      </summary>
+      <div class="case-detail">
+        <div class="action-box ${urg===0?'crit':''}">
+          <strong>Acción recomendada (${escapeHtml(c.plazo||'—')})</strong>
+          ${escapeHtml(c.accionRecomendada||'—')}
+          <div style="margin-top:6px;font-size:.82rem;color:#7c2d12"><strong>Ruta / responsable:</strong> ${escapeHtml(c.ruta||'—')}</div>
+        </div>
+        <div class="grid">
+          <div class="block"><h4>Contacto</h4><p>📞 ${escapeHtml(c.telefono||'Sin teléfono')}${c.telefono?` — <a href="tel:${escapeHtml(String(c.telefono))}">llamar</a>`:''}</p></div>
+          <div class="block"><h4>Quién respondió</h4><p>${c.rama==='A'?'Cuidador (niño/a 5–10 años)':(c.rama==='B'?'Autoreporte (11–19 años)':escapeHtml(c.rama||'—'))}</p></div>
+          <div class="block"><h4>Perfil operativo</h4><p>${escapeHtml(c.perfil||'—')}</p></div>
+          <div class="block"><h4>Indicador de riesgo general</h4><p>${escapeHtml(c.indicadorGeneral||'—')}</p></div>
+          <div class="block"><h4>Malestar postraumático</h4><p>${c.postraumScore!==null?c.postraumScore+'/12 · ':''}${escapeHtml(c.postraumNivel||'—')}</p></div>
+          <div class="block"><h4>Malestar combinado</h4><p>${c.combinadoScore!==null?c.combinadoScore+'/18 · ':''}${escapeHtml(c.combinadoNivel||'—')}</p></div>
+          <div class="block"><h4>Reintegración escolar</h4><p>${c.reintegraScore!==null?c.reintegraScore+'/9 · ':''}${escapeHtml(c.reintegraNivel||'—')}</p></div>
+          <div class="block"><h4>Recursos personales</h4><p>${c.recursosPersScore!==null?c.recursosPersScore+'/9 · ':''}${escapeHtml(c.recursosPersNivel||'—')}</p></div>
+          <div class="block"><h4>Recursos familiares</h4><p>${c.recursosFamScore!==null?c.recursosFamScore+'/9 · ':''}${escapeHtml(c.recursosFamNivel||'—')}</p></div>
+          <div class="block"><h4>Contexto material</h4><p>Vivienda: ${escapeHtml(c.danosVivienda||'—')}<br>Salida temporal: ${escapeHtml(c.salidaVivienda||'—')}<br>Dificultades de servicios: ${escapeHtml(c.dificultadesServ||'—')}</p></div>
+        </div>
+        <details style="margin-top:10px;">
+          <summary style="cursor:pointer;font-size:.82rem;color:var(--muted)">Ver los 17 indicadores IBITE-17</summary>
+          <table class="indicator-table"><tbody>${indicatorRows}</tbody></table>
+        </details>
+        ${c.accionesEspecificas ? `<div class="action-box" style="margin-top:10px;background:#eff6ff;border-color:#bfdbfe;"><strong>Acciones específicas por señal</strong>${escapeHtml(c.accionesEspecificas)}</div>` : ''}
+      </div>
+    </details>`;
+  }).join('');
+}
+
+function renderTab2(){
+  let cases = getFilteredCases();
+  if(state.tab2.urgency!==null) cases = cases.filter(c=>computeUrgency(c)===state.tab2.urgency);
+  if(state.tab2.onlySeguridad) cases = cases.filter(c=>alertaClass(c.alertaSeguridad)!=='ninguna');
+  if(state.tab2.search){
+    const s = normalize(state.tab2.search);
+    cases = cases.filter(c=> normalize(c.nombre).includes(s) || normalize(c.institucion).includes(s) || normalize(c.grado).includes(s) || normalize(c.comuna).includes(s));
+  }
+  cases.sort((a,b)=> computeUrgency(a)-computeUrgency(b) || (b.ts - a.ts));
+  renderUrgencyChips(getFilteredCases());
+  renderCaseList(cases);
+}
+
+/* =========================================================
+   RENDER ALL
+   ========================================================= */
+function renderAll(){
+  const filtered = getFilteredCases();
+  renderKPIs(filtered);
+  renderCharts(filtered);
+  renderTab2();
+}
+
+/* =========================================================
+   EXPORTAR CSV
+   ========================================================= */
+function exportCSV(){
+  let cases = getFilteredCases();
+  if(state.tab2.urgency!==null) cases = cases.filter(c=>computeUrgency(c)===state.tab2.urgency);
+  if(state.tab2.onlySeguridad) cases = cases.filter(c=>alertaClass(c.alertaSeguridad)!=='ninguna');
+  cases.sort((a,b)=> computeUrgency(a)-computeUrgency(b));
+  const headers = ['Nombre','Edad','Sexo','Institución','Grado','Comuna','Teléfono','Urgencia','Alerta de seguridad','Riesgo material grave','Deterioro funcional','Desescolarización','Indicador de riesgo general','Acción recomendada','Plazo de acción','Ruta/responsable','Fecha de registro'];
+  const rows = cases.map(c=>[
+    c.nombre, c.edad, c.sexo, c.institucion, c.grado, c.comuna, c.telefono,
+    URGENCY_META[computeUrgency(c)].short, c.alertaSeguridad, c.riesgoMaterial, c.deterioroFlag, c.desescolarFlag,
+    c.indicadorGeneral, c.accionRecomendada, c.plazo, c.ruta, c.ts ? c.ts.toISOString() : ''
+  ]);
+  const csv = [headers, ...rows].map(r=>r.map(csvEscape).join(';')).join('\r\n');
+  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'ibite_casos_prioritarios_' + dateStamp() + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* =========================================================
+   EVENTOS UI
+   ========================================================= */
+document.querySelectorAll('nav.tabs .tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('nav.tabs .tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const tabId = btn.getAttribute('data-tab');
+    document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('tab-'+tabId).classList.add('active');
+  });
+});
+
+document.getElementById('closeConfBanner').addEventListener('click', ()=>{
+  document.getElementById('confBanner').classList.add('hidden');
+});
+
+['fInstitucion','fGrado','fComuna','fRama'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', e=>{
+    const map = {fInstitucion:'institucion',fGrado:'grado',fComuna:'comuna',fRama:'rama'};
+    state.filters[map[id]] = e.target.value;
+    renderAll();
+  });
+});
+document.getElementById('fDesde').addEventListener('change', e=>{ state.filters.desde = e.target.value; renderAll(); });
+document.getElementById('fHasta').addEventListener('change', e=>{ state.filters.hasta = e.target.value; renderAll(); });
+document.getElementById('btnClearFilters').addEventListener('click', ()=>{
+  state.filters = {institucion:'', grado:'', comuna:'', rama:'', desde:'', hasta:''};
+  ['fInstitucion','fGrado','fComuna','fRama'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fDesde').value=''; document.getElementById('fHasta').value='';
+  renderAll();
+});
+
+document.getElementById('searchBox').addEventListener('input', e=>{ state.tab2.search = e.target.value; renderTab2(); });
+document.getElementById('onlySeguridad').addEventListener('change', e=>{ state.tab2.onlySeguridad = e.target.checked; renderTab2(); });
+document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
+document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
+
+const fileInput = document.getElementById('fileInput');
+function openFilePicker(){ fileInput.click(); }
+document.getElementById('btnLoad').addEventListener('click', openFilePicker);
+document.getElementById('btnReloadFromCache').addEventListener('click', openFilePicker);
+fileInput.addEventListener('change', e=>{ if(e.target.files[0]) handleFile(e.target.files[0]); });
+
+function loadDemo(){
+  applyLoadedData(generateDemoCases(), 'demo');
+}
+document.getElementById('btnDemo').addEventListener('click', loadDemo);
+document.getElementById('btnDemo2').addEventListener('click', loadDemo);
+
+// Drag & drop en toda la página
+let dragCounter = 0;
+window.addEventListener('dragenter', e=>{ e.preventDefault(); dragCounter++; document.getElementById('dragOverlay').style.display='flex'; });
+window.addEventListener('dragleave', e=>{ e.preventDefault(); dragCounter--; if(dragCounter<=0){ document.getElementById('dragOverlay').style.display='none'; dragCounter=0; } });
+window.addEventListener('dragover', e=> e.preventDefault());
+window.addEventListener('drop', e=>{
+  e.preventDefault();
+  dragCounter = 0;
+  document.getElementById('dragOverlay').style.display='none';
+  if(e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+
+/* =========================================================
+   INICIO
+   ========================================================= */
+async function init(){
+  if(typeof XLSX === 'undefined'){
+    setStatus('⚠️ No se pudo cargar la librería de lectura de Excel (¿sin conexión a internet?). Conéctate a internet al menos una vez para usar el tablero.');
+  }
+  setStatus('Buscando "' + CONFIG.EXPECTED_FILENAME + '" en la misma carpeta…');
+  const okFetch = await tryAutoFetch();
+  if(okFetch) return;
+
+  const cached = loadFromCache();
+  if(cached && cached.cases && cached.cases.length){
+    applyLoadedData(cached.cases, 'cache', {savedAt: cached.savedAt});
+    return;
+  }
+  setStatus('No se encontró el Excel automáticamente. Carga el archivo manualmente o mira los datos de ejemplo.');
+  loadDemo();
+}
+init();
+</script>
+</body>
+</html>

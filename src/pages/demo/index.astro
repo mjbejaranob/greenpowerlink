@@ -1,6 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { ExternalLink, Stethoscope, Calculator } from 'lucide-astro';
+import { ExternalLink, Stethoscope, Calculator, AlarmClockPlus, AlertTriangle, Printer } from 'lucide-astro';
 
 const demos = [
   {
@@ -23,8 +23,17 @@ const demos = [
     title: "3D printing Calculator",
     description: "A simple 3D Printing Calculator.",
     href: "/demo/3D_printing_cal",
-    icon: Calculator,
-    color: "Orange",
+    icon: Printer,
+    color: "blue",
+    tags: ["3D printing", "Modeling", "Engineering"]
+  },
+ 
+      {
+    title: "IBITE · Tablero de Bienestar Infantil y Adolescente",
+    description: "IBITE · Tablero de Bienestar Infantil y Adolescente",
+    href: "/demo/Tablero_Bienestar_Infantil",
+    icon: AlertTriangle,
+    color: "red",
     tags: ["3D printing", "Modeling", "Engineering"]
   },
 
