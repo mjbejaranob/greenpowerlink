@@ -1,8 +1,16 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { ExternalLink, Stethoscope, Calculator, AlarmClockPlus, AlertTriangle, Printer } from 'lucide-astro';
+import { ExternalLink, Stethoscope, Calculator, AlarmClockPlus, AlertTriangle, Printer, Users } from 'lucide-astro';
 
 const demos = [
+  {
+    title: "Career Connect",
+    description: "Discover candidates by role and skills, and help people find their next opportunity.",
+    href: "/demo/career-connect",
+    icon: Users,
+    color: "green",
+    tags: ["Careers", "Skills", "Community"]
+  },
   {
     title: "SmileTech Dental Clinic",
     description: "A comprehensive medical portal featuring patient booking, staff login, and an e-commerce shop for clinical products.",

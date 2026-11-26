@@ -1,0 +1,167 @@
+---
+import { ArrowDownRight, ArrowLeft, ArrowRight, BriefcaseBusiness, Check, ChevronDown, HeartHandshake, MapPin, Search, ShieldCheck, Sparkles, Users, X } from 'lucide-astro';
+
+const supabaseUrl = import.meta.env.PUBLIC_CAREER_SUPABASE_URL || '';
+const supabaseKey = import.meta.env.PUBLIC_CAREER_SUPABASE_ANON_KEY || '';
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Career Connect</title>
+  <meta name="description" content="Discover people, skills and possibilities. Career Connect brings candidates and recruiters together." />
+  <meta property="og:title" content="Career Connect" />
+  <meta property="og:description" content="Discover people, skills and possibilities. Find your next opportunity or the people behind it." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%23213b2e'/%3E%3Ctext x='32' y='45' text-anchor='middle' font-family='sans-serif' font-size='42' font-weight='bold' fill='white'%3EC%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <div id="career-app" data-url={supabaseUrl} data-key={supabaseKey}>
+    <header class="topbar">
+      <a class="brand" href="/demo/career-connect" aria-label="Career Connect home"><span class="brand-mark">c<span>.</span></span><span>CAREER CONNECT</span></a>
+      <nav aria-label="Main navigation"><a href="/demo" class="back-link"><ArrowLeft size={15} /> All demos</a><a href="#directory" class="nav-link">Find talent</a><button type="button" class="button button-dark open-submit">Create a profile <ArrowRight size={16} /></button></nav>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <div class="intro-inner">
+          <div class="intro-copy">
+            <div class="eyebrow"><span class="eyebrow-dot"></span> PEOPLE FIRST. ALWAYS.</div>
+            <h1 id="page-title">Good people.<br /><span>New possibilities.</span></h1>
+            <p>Helping colleagues affected by redundancy share their skills, support one another, and connect with new opportunities.</p>
+            <div class="intro-actions"><a class="button button-dark" href="#directory">Explore talent <ArrowDownRight size={17} /></a><button type="button" class="text-action open-submit">I'm looking for work <ArrowRight size={16} /></button></div>
+          </div>
+          <div class="intro-art" aria-hidden="true"><div class="art-grid"></div><div class="art-copy"><span>THE NEXT CHAPTER</span><strong>Experience<br />isn't made<br />redundant.</strong><div class="art-bottom"><span>01 / PEOPLE & POTENTIAL</span><Sparkles size={20} /></div></div></div>
+        </div>
+      </section>
+
+      <section class="directory" id="directory" aria-labelledby="directory-title">
+        <div class="section-top"><div><div class="section-label"><span>01</span> THE TALENT DIRECTORY</div><h2 id="directory-title">Find your people.</h2><p>Search by role, skill or location to find your next great connection.</p></div><div class="section-side"><Users size={20} /><span>Real experience.<br />Real potential.</span></div></div>
+        <div class="search-panel">
+          <div class="search-field"><Search size={20} aria-hidden="true" /><label class="sr-only" for="search">Search candidates</label><input id="search" type="search" placeholder="Search roles, skills, or keywords" autocomplete="off" /></div>
+          <div class="select-wrap"><MapPin size={17} aria-hidden="true" /><label class="sr-only" for="location">Filter by location</label><select id="location"><option value="">All locations</option></select><ChevronDown size={16} aria-hidden="true" /></div>
+          <div class="select-wrap"><BriefcaseBusiness size={17} aria-hidden="true" /><label class="sr-only" for="work-type">Filter by work preference</label><select id="work-type"><option value="">Any work type</option><option>On-site</option><option>Hybrid</option><option>Remote</option></select><ChevronDown size={16} aria-hidden="true" /></div>
+        </div>
+        <div class="results-heading"><div><strong id="results-count">Finding people...</strong><span> / CANDIDATES</span></div><button id="clear-filters" type="button">Clear filters <X size={14} /></button></div>
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+        <div id="candidates" class="candidate-grid"></div>
+      </section>
+
+      <section class="join-band"><div><div class="section-label light"><span>02</span> OPEN TO OPPORTUNITY?</div><h2>Your experience matters.</h2><p>Share your skills and let your colleagues recommend you.</p></div><button type="button" class="button button-light open-submit">Create your profile <ArrowRight size={16} /></button></section>
+    </main>
+    <footer><a class="footer-brand" href="/demo/career-connect">CAREER CONNECT<span>.</span></a><p>Making space for what's next.</p><div><a href="/contact">Contact & privacy requests</a><a href="/demo">Explore demos</a></div></footer>
+
+    <dialog id="submit-dialog" aria-labelledby="submit-title"><div class="dialog-header"><div><div class="section-label"><span>01</span> JOIN THE DIRECTORY</div><h2 id="submit-title">Tell us about you.</h2><p>Your profile is reviewed before it appears in the directory.</p></div><button type="button" class="icon-button close-dialog" aria-label="Close"><X size={20} /></button></div>
+      <form id="candidate-form"><div class="form-grid"><label>Full name <span>*</span><input name="name" required maxlength="100" autocomplete="name" /></label><label>Professional title <span>*</span><input name="title" required maxlength="120" placeholder="e.g. Project manager" /></label><label>Location <span>*</span><input name="location" required maxlength="100" placeholder="e.g. Brisbane, Australia" /></label><label>Work preference <span>*</span><select name="work_type" required><option value="">Select preference</option><option>On-site</option><option>Hybrid</option><option>Remote</option></select></label><label class="full">Skills <span>*</span><input name="skills" required maxlength="300" placeholder="e.g. Project management, AutoCAD, Leadership" /><small>Separate skills with commas.</small></label><label class="full">A little about your experience <span>*</span><textarea name="summary" required maxlength="800" rows="4" placeholder="Tell recruiters what you bring to a team."></textarea></label><label>Email address <span>*</span><input name="email" type="email" required maxlength="254" autocomplete="email" /><small>Private; only the site owner can access it.</small></label><label>LinkedIn profile <span class="optional">Optional</span><input name="linkedin" type="url" maxlength="300" placeholder="https://www.linkedin.com/in/..." /><small>If provided, this will be public.</small></label></div>
+        <div class="privacy-note"><ShieldCheck size={19} /><p>Your name, title, location, skills, summary and optional LinkedIn profile will be public after approval. Your email is private to the site owner. Avoid including sensitive personal information in public fields.</p></div>
+        <label class="consent"><input type="checkbox" required name="consent" /><span>I agree to this use of my information and understand I can <a href="/contact" target="_blank" rel="noopener">contact the site owner</a> to request removal.</span></label>
+        <div class="form-footer"><p class="form-message" role="status" aria-live="polite"></p><button class="button button-dark" type="submit">Submit for review <ArrowRight size={16} /></button></div>
+      </form>
+    </dialog>
+
+    <dialog id="profile-dialog" aria-labelledby="profile-title"><div class="dialog-header"><div><div class="section-label"><span>PROFILE</span> CAREER CONNECT</div><h2 id="profile-title"></h2><p id="profile-subtitle"></p></div><button type="button" class="icon-button close-dialog" aria-label="Close"><X size={20} /></button></div><div id="profile-content"></div><div class="endorsement-section"><div class="endorsement-heading"><div><h3>Words from their network</h3><p>Recommendations are reviewed before appearing.</p></div><HeartHandshake size={22} /></div><div id="endorsements"></div><button type="button" id="show-endorse" class="button button-outline">Recommend this person <ArrowRight size={15} /></button><form id="endorsement-form" hidden><label>Your name <span>*</span><input name="author" required maxlength="100" /></label><label>Your relationship <span>*</span><input name="relationship" required maxlength="100" placeholder="e.g. Former colleague" /></label><label>Recommendation <span>*</span><textarea name="message" required maxlength="600" rows="3" placeholder="Share what makes this person great to work with."></textarea></label><label class="consent"><input type="checkbox" name="consent" required /><span>I agree to my name, relationship and recommendation being published after review.</span></label><div class="form-footer"><p class="form-message" role="status" aria-live="polite"></p><button class="button button-dark" type="submit">Submit recommendation <ArrowRight size={15} /></button></div></form></div></dialog>
+  </div>
+  <style is:global>
+    :root{font-family:'DM Sans',sans-serif;color:#202923;background:#f8f9f6;font-synthesis:none}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0}button,input,select,textarea{font:inherit}button,a{ -webkit-tap-highlight-color:transparent}a{color:inherit;text-decoration:none}button{cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #d99045;outline-offset:3px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    .topbar{height:78px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 max(5%,calc((100% - 1320px)/2));border-bottom:1px solid #e8ebe6;gap:20px}.brand{display:flex;align-items:center;gap:10px;font-family:Manrope,sans-serif;font-weight:800;font-size:12px;letter-spacing:0}.brand-mark{background:#1d3028;color:#fff;width:34px;height:34px;display:grid;place-items:center;font-size:24px;border-radius:4px;line-height:1}.brand-mark span,.footer-brand span{color:#d5a467}.topbar nav{display:flex;align-items:center;gap:29px;font-size:13px;font-weight:700}.back-link{display:flex;align-items:center;gap:7px;color:#778179}.nav-link{color:#354139}.button{border:1px solid transparent;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;gap:15px;min-height:46px;padding:0 19px;font-size:13px;font-weight:700;white-space:nowrap}.button-dark{background:#213b2e;color:#fff}.button-dark:hover{background:#365b47}.button-light{background:#fff;color:#203a2e}.button-outline{background:#fff;color:#243c2f;border-color:#cdd8cf}.text-action{border:0;background:transparent;color:#253b2d;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;padding:12px 0}
+    .intro{background:#e8eee8;border-bottom:1px solid #dce5dc}.intro-inner{max-width:1320px;margin:auto;padding:62px 5% 56px;display:grid;grid-template-columns:1fr .75fr;gap:70px;align-items:center}.eyebrow,.section-label{font-size:10px;letter-spacing:1.5px;font-weight:700;color:#5e7564;display:flex;align-items:center;gap:10px}.eyebrow-dot{width:7px;height:7px;background:#ba744a;border-radius:50%}h1,h2,h3,p{margin:0}h1,h2,h3{font-family:Manrope,sans-serif;letter-spacing:0}h1{font-size:clamp(38px, 5vw, 64px);line-height:1.12;font-weight:800;margin:20px 0}h1 span{color:#668675}.intro-copy>p{font-size:16px;line-height:1.7;color:#627269;max-width:445px}.intro-actions{display:flex;gap:24px;align-items:center;margin-top:27px}.intro-art{min-height:260px;background:#263f32;position:relative;overflow:hidden;color:#f5f6ef}.art-grid{position:absolute;inset:0;background-image:linear-gradient(#ffffff0b 1px,transparent 1px),linear-gradient(90deg,#ffffff0b 1px,transparent 1px);background-size:35px 35px}.art-copy{position:relative;z-index:2;padding:27px 30px;height:260px;display:flex;flex-direction:column;justify-content:space-between}.art-copy>span,.art-bottom span{font-size:9px;letter-spacing:1.3px;font-weight:700;color:#bccdc0}.art-copy strong{font-family:Manrope,sans-serif;font-size:28px;line-height:1.2}.art-bottom{display:flex;justify-content:space-between;align-items:center}.art-shape{position:absolute;border-radius:50%;border:1px solid #93b4a252}.shape-one{width:220px;height:220px;right:-20px;top:-35px}.shape-two{width:155px;height:155px;right:13px;top:0;background:#c4a67918}
+    .directory{max-width:1320px;margin:auto;padding:74px 5% 88px;scroll-margin-top:20px}.section-top{display:flex;justify-content:space-between;align-items:end;gap:20px}.section-label span{color:#be8055}.section-top h2,.join-band h2{font-size:32px;line-height:1.2;margin:13px 0 9px}.section-top p,.join-band p{font-size:14px;color:#748078;line-height:1.6}.section-side{display:flex;align-items:center;gap:10px;color:#7b8a80;font-size:11px;line-height:1.4}.search-panel{display:grid;grid-template-columns:minmax(0,1fr) 220px 200px;gap:0;background:white;border:1px solid #dce3db;margin-top:30px;min-height:62px}.search-field,.select-wrap{display:flex;align-items:center;gap:11px;padding:0 19px;color:#728277}.select-wrap{border-left:1px solid #e4e9e3}.search-field input,.select-wrap select{width:100%;border:0;outline:0;background:transparent;color:#334139;font-size:13px;min-width:0}.search-field input::placeholder{color:#9ba79d}.select-wrap select{appearance:none;cursor:pointer}.select-wrap>svg:last-child{flex-shrink:0}.results-heading{display:flex;justify-content:space-between;align-items:center;margin:28px 0 17px;font-size:12px;color:#8a968e}.results-heading strong{color:#2b3b31;font-size:14px}.results-heading span{font-size:10px;letter-spacing:1px;margin-left:5px}.results-heading button{display:flex;gap:6px;align-items:center;border:0;background:none;color:#718077;font-size:12px}.candidate-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.candidate-card{background:#fff;border:1px solid #e2e8e1;border-radius:5px;padding:22px;display:flex;flex-direction:column;min-width:0}.candidate-top{display:flex;align-items:center;gap:13px}.avatar{width:46px;height:46px;display:grid;place-items:center;background:#e4ede3;color:#4e7057;font-family:Manrope,sans-serif;font-weight:800;font-size:15px;flex-shrink:0}.candidate-card:nth-child(3n+2) .avatar{background:#f5e9dd;color:#9e6d4e}.candidate-card:nth-child(3n) .avatar{background:#e4ebef;color:#627d8d}.candidate-card h3{font-size:15px;overflow-wrap:anywhere}.candidate-card .role{font-size:12px;color:#748078;margin-top:4px;overflow-wrap:anywhere}.candidate-meta{font-size:12px;color:#718077;display:flex;flex-wrap:wrap;gap:14px;margin:20px 0 15px}.candidate-meta span{display:flex;gap:5px;align-items:center}.summary{color:#69766d;font-size:13px;line-height:1.6;overflow-wrap:anywhere}.skills{display:flex;gap:6px;flex-wrap:wrap;margin:17px 0 21px}.skill{font-size:11px;color:#55715e;background:#edf3ed;padding:5px 8px;border-radius:3px;overflow-wrap:anywhere}.card-footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #edf0ec;padding-top:16px;margin-top:auto}.card-footer span{font-size:11px;color:#829086}.card-footer button{border:0;background:none;color:#2c523b;display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;padding:4px}.status{color:#748078;font-size:14px;line-height:1.6}.status:not(:empty){border:1px dashed #d4dfd4;background:#fff;padding:24px;margin-bottom:16px}.status a{color:#315d3f;text-decoration:underline}.join-band{background:#254333;color:#fff;padding:48px max(5%,calc((100% - 1190px)/2));display:flex;justify-content:space-between;align-items:center;gap:25px}.join-band h2{font-size:27px}.join-band p{color:#c3d1c5}.light{color:#aec2b2}footer{background:#1b3025;color:#cad7cc;padding:30px max(5%,calc((100% - 1190px)/2));display:flex;align-items:center;gap:25px;font-size:12px}footer p{color:#8ca192}footer>div{display:flex;gap:22px;margin-left:auto}.footer-brand{font-family:Manrope,sans-serif;font-size:11px;font-weight:800;color:#fff}
+    dialog{border:0;border-radius:6px;width:min(720px,calc(100% - 28px));max-height:calc(100% - 28px);padding:30px;box-shadow:0 20px 70px #11251940;color:#25342a}dialog::backdrop{background:#18271fbd}.dialog-header{display:flex;justify-content:space-between;gap:20px;margin-bottom:25px}.dialog-header h2{font-size:25px;margin:12px 0 7px}.dialog-header p,.endorsement-heading p{color:#758279;font-size:13px;line-height:1.5}.icon-button{width:38px;height:38px;border:1px solid #e2e8e2;background:#fff;color:#506054;display:grid;place-items:center;flex-shrink:0}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.form-grid .full{grid-column:1/-1}form label:not(.consent){display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:700;color:#35473b}label span:not(.optional){color:#ba754e}label .optional{color:#92a096;font-weight:400}input:not([type=checkbox]),select,textarea{border:1px solid #dce4dc;border-radius:3px;padding:11px 12px;color:#25342a;background:#fff;width:100%;font-size:13px}textarea{resize:vertical}input[type=file]{padding:9px}small{font-size:11px;color:#819086;font-weight:400;line-height:1.4}.privacy-note{display:flex;gap:12px;background:#eef4ed;padding:14px;margin-top:20px;color:#56715c}.privacy-note svg{flex-shrink:0}.privacy-note p{font-size:12px;line-height:1.5}.consent{display:flex;align-items:flex-start;gap:9px;margin:17px 0;color:#586b5c;font-size:12px;line-height:1.5}.consent input{margin-top:3px}.consent span{color:inherit!important}.consent a{text-decoration:underline}.form-footer{display:flex;align-items:center;justify-content:space-between;gap:15px}.form-message{font-size:12px;color:#a34e32;line-height:1.5}.form-message.success{color:#316c43}.button:disabled{opacity:.55;cursor:not-allowed}.profile-description{color:#647469;font-size:14px;line-height:1.7;overflow-wrap:anywhere}.profile-contact{margin-top:17px}.endorsement-section{border-top:1px solid #e5ebe4;margin-top:24px;padding-top:22px}.endorsement-heading{display:flex;justify-content:space-between;color:#54715b}.endorsement-heading h3{font-size:16px;color:#263b2d;margin-bottom:5px}.endorsement-item{padding:16px 0;border-bottom:1px solid #edf1ec}.endorsement-item p{font-size:13px;line-height:1.6;color:#5e6f62;overflow-wrap:anywhere}.endorsement-item strong{display:block;font-size:12px;margin-top:8px}.endorsement-item small{display:block;margin-top:3px}#show-endorse{margin-top:17px}#endorsement-form{margin-top:20px}#endorsement-form:not([hidden]){display:grid;gap:14px}#endorsement-form .consent{margin:0}
+    h1{font-size:54px}
+    @media(max-width:800px){.topbar{height:68px}.topbar nav{gap:15px}.nav-link{display:none}.intro-inner{grid-template-columns:1fr 0.8fr;gap:25px;padding-top:45px;padding-bottom:45px}.intro-art,.art-copy{min-height:230px;height:230px}.art-copy strong{font-size:23px}.candidate-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.search-panel{grid-template-columns:1fr 180px 160px}.search-field,.select-wrap{padding:0 12px}}
+    @media(max-width:600px){.topbar{padding:0 18px}.brand>span:last-child{font-size:10px}.topbar nav .button{min-height:40px;padding:0 12px;font-size:11px;gap:6px}.back-link{font-size:0}.back-link svg{width:18px;height:18px}.intro-inner{display:block;padding:42px 20px}.intro-art{margin-top:32px;min-height:190px}.art-copy{height:190px;min-height:0}.intro-copy>p{font-size:14px}h1{font-size:39px}.directory{padding:55px 20px}.section-top h2{font-size:27px}.section-side{display:none}.search-panel{grid-template-columns:1fr 1fr}.search-field{grid-column:1/-1;min-height:55px;border-bottom:1px solid #e4e9e3}.select-wrap{min-height:52px;border-left:0}.select-wrap:last-child{border-left:1px solid #e4e9e3}.candidate-grid{grid-template-columns:1fr}.join-band{padding:38px 20px;align-items:flex-start;flex-direction:column}.join-band h2{font-size:25px}footer{padding:25px 20px;flex-wrap:wrap;gap:12px}footer>div{width:100%;margin:5px 0 0}.form-grid{grid-template-columns:1fr}.form-grid .full{grid-column:auto}dialog{padding:22px}.form-footer{align-items:flex-start;flex-direction:column}.form-footer .button{width:100%}}
+  </style>
+  <script>
+    const app = document.querySelector<HTMLElement>('#career-app')!;
+    const url = (app.dataset.url || '').replace(/\/$/, '');
+    const key = app.dataset.key || '';
+    const configured = /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url) && !!key;
+    const headers = { apikey: key, Authorization: `Bearer ${key}` };
+    const status = document.querySelector<HTMLElement>('#status')!;
+    const grid = document.querySelector<HTMLElement>('#candidates')!;
+    const count = document.querySelector<HTMLElement>('#results-count')!;
+    const search = document.querySelector<HTMLInputElement>('#search')!;
+    const locationFilter = document.querySelector<HTMLSelectElement>('#location')!;
+    const workFilter = document.querySelector<HTMLSelectElement>('#work-type')!;
+    const candidateDialog = document.querySelector<HTMLDialogElement>('#submit-dialog')!;
+    const profileDialog = document.querySelector<HTMLDialogElement>('#profile-dialog')!;
+    const candidateForm = document.querySelector<HTMLFormElement>('#candidate-form')!;
+    const endorsementForm = document.querySelector<HTMLFormElement>('#endorsement-form')!;
+    const showEndorse = document.querySelector<HTMLButtonElement>('#show-endorse')!;
+    type Candidate = { id: string; name: string; title: string; location: string; work_type: string; skills: string[]; summary: string; linkedin: string | null };
+    type Endorsement = { candidate_id: string; author: string; relationship: string; message: string };
+    let candidates: Candidate[] = [];
+    let endorsements: Endorsement[] = [];
+    let selectedId = '';
+    const escape = (value: string) => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character] || character));
+    const linkedinUrl = (value: string | null) => { try { const parsed = new URL(value || ''); return parsed.protocol === 'https:' && (parsed.hostname === 'linkedin.com' || parsed.hostname.endsWith('.linkedin.com')) ? parsed.href : ''; } catch { return ''; } };
+    const skillsMarkup = (skills: string[]) => `<div class="skills">${skills.map(skill => `<span class="skill">${escape(skill)}</span>`).join('')}</div>`;
+    const message = (form: HTMLFormElement, text: string, success = false) => { const element = form.querySelector<HTMLElement>('.form-message')!; element.textContent = text; element.classList.toggle('success', success); };
+    async function request(path: string, options: RequestInit = {}) {
+      const response = await fetch(`${url}${path}`, { ...options, headers: { ...headers, ...options.headers } });
+      if (!response.ok) throw new Error('Request failed');
+      return response;
+    }
+    function render() {
+      const query = search.value.trim().toLowerCase();
+      const results = candidates.filter(candidate => (!query || [candidate.name, candidate.title, candidate.location, candidate.summary, ...candidate.skills].join(' ').toLowerCase().includes(query)) && (!locationFilter.value || candidate.location === locationFilter.value) && (!workFilter.value || candidate.work_type === workFilter.value));
+      count.textContent = `${results.length} ${results.length === 1 ? 'person' : 'people'}`;
+      grid.innerHTML = results.map(candidate => {
+        const initials = candidate.name.split(/\s+/).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase();
+        const recommendations = endorsements.filter(item => item.candidate_id === candidate.id).length;
+        return `<article class="candidate-card"><div class="candidate-top"><div class="avatar" aria-hidden="true">${escape(initials)}</div><div><h3>${escape(candidate.name)}</h3><p class="role">${escape(candidate.title)}</p></div></div><div class="candidate-meta"><span>${escape(candidate.location)} · ${escape(candidate.work_type)}</span></div><p class="summary">${escape(candidate.summary)}</p>${skillsMarkup(candidate.skills)}<div class="card-footer"><span>${recommendations} ${recommendations === 1 ? 'recommendation' : 'recommendations'}</span><button type="button" data-profile="${escape(candidate.id)}">View profile <span aria-hidden="true">&#8599;</span></button></div></article>`;
+      }).join('');
+      status.textContent = results.length ? '' : (candidates.length ? 'No candidates match these filters. Try another search.' : 'No profiles have been published yet. Be the first to submit your profile.');
+    }
+    async function load() {
+      if (!configured) { count.textContent = 'Unavailable'; status.textContent = 'The directory is not connected yet. Profiles and submissions will be available when the site owner finishes setup.'; return; }
+      try {
+        const [peopleResponse, endorsementResponse] = await Promise.all([request('/rest/v1/career_public_profiles?select=*&order=name.asc'), request('/rest/v1/career_public_endorsements?select=*')]);
+        candidates = await peopleResponse.json(); endorsements = await endorsementResponse.json();
+        locationFilter.innerHTML = '<option value="">All locations</option>' + [...new Set(candidates.map(candidate => candidate.location))].sort().map(location => `<option value="${escape(location)}">${escape(location)}</option>`).join('');
+        render();
+      } catch { count.textContent = 'Unavailable'; status.textContent = 'The directory could not be loaded. Please try again later.'; }
+    }
+    function openProfile(id: string) {
+      const candidate = candidates.find(person => person.id === id); if (!candidate) return;
+      selectedId = id;
+      document.querySelector<HTMLElement>('#profile-title')!.textContent = candidate.name;
+      document.querySelector<HTMLElement>('#profile-subtitle')!.textContent = `${candidate.title} · ${candidate.location} · ${candidate.work_type}`;
+      const linkedin = linkedinUrl(candidate.linkedin);
+      document.querySelector<HTMLElement>('#profile-content')!.innerHTML = `<p class="profile-description">${escape(candidate.summary)}</p>${skillsMarkup(candidate.skills)}<div class="profile-contact">${linkedin ? `<a class="button button-outline" href="${escape(linkedin)}" target="_blank" rel="noopener noreferrer">View LinkedIn profile &#8599;</a>` : `<a class="button button-outline" href="/contact">Contact the site owner &#8599;</a>`}</div>`;
+      const recommendations = endorsements.filter(item => item.candidate_id === id);
+      document.querySelector<HTMLElement>('#endorsements')!.innerHTML = recommendations.length ? recommendations.map(item => `<div class="endorsement-item"><p>${escape(item.message)}</p><strong>${escape(item.author)}</strong><small>${escape(item.relationship)}</small></div>`).join('') : '<div class="endorsement-item"><p>No recommendations published yet.</p></div>';
+      endorsementForm.reset(); endorsementForm.hidden = true; showEndorse.hidden = false; message(endorsementForm, ''); profileDialog.showModal();
+    }
+    document.querySelectorAll<HTMLButtonElement>('.open-submit').forEach(button => button.addEventListener('click', () => { message(candidateForm, ''); candidateDialog.showModal(); }));
+    document.querySelectorAll<HTMLButtonElement>('.close-dialog').forEach(button => button.addEventListener('click', () => button.closest('dialog')?.close()));
+    grid.addEventListener('click', event => { const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-profile]'); if (button?.dataset.profile) openProfile(button.dataset.profile); });
+    [search, locationFilter, workFilter].forEach(input => input.addEventListener('input', () => { if (configured && count.textContent !== 'Unavailable') render(); }));
+    document.querySelector('#clear-filters')!.addEventListener('click', () => { search.value = ''; locationFilter.value = ''; workFilter.value = ''; if (configured && count.textContent !== 'Unavailable') render(); });
+    showEndorse.addEventListener('click', () => { endorsementForm.hidden = false; showEndorse.hidden = true; endorsementForm.querySelector<HTMLInputElement>('input')?.focus(); });
+    candidateForm.addEventListener('submit', async event => {
+      event.preventDefault(); if (!configured) { message(candidateForm, 'Submissions are not available yet. Please contact the site owner.'); return; }
+      const data = new FormData(candidateForm); const linkedin = String(data.get('linkedin') || '').trim();
+      if (linkedin && !linkedinUrl(linkedin)) { message(candidateForm, 'Please enter a valid HTTPS LinkedIn profile URL.'); return; }
+      const skills = String(data.get('skills')).split(',').map(skill => skill.trim()).filter(Boolean);
+      if (!skills.length || skills.length > 15 || skills.some(skill => skill.length > 60)) { message(candidateForm, 'Please enter between 1 and 15 skills, each under 60 characters.'); return; }
+      const button = candidateForm.querySelector<HTMLButtonElement>('button[type=submit]')!; button.disabled = true; message(candidateForm, 'Submitting...');
+      try {
+        await request('/rest/v1/career_profiles', { method: 'POST', headers: { 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ name: String(data.get('name')).trim(), title: String(data.get('title')).trim(), location: String(data.get('location')).trim(), work_type: data.get('work_type'), skills, summary: String(data.get('summary')).trim(), email: String(data.get('email')).trim(), linkedin: linkedin || null }) });
+        candidateForm.reset(); message(candidateForm, 'Thank you. Your profile has been submitted for review.', true);
+      } catch { message(candidateForm, 'We could not submit your profile. Please try again or contact the site owner.'); } finally { button.disabled = false; }
+    });
+    endorsementForm.addEventListener('submit', async event => {
+      event.preventDefault(); if (!configured) { message(endorsementForm, 'Recommendations are not available yet.'); return; }
+      const data = new FormData(endorsementForm); const button = endorsementForm.querySelector<HTMLButtonElement>('button[type=submit]')!; button.disabled = true; message(endorsementForm, 'Submitting...');
+      try { await request('/rest/v1/career_endorsements', { method: 'POST', headers: { 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ candidate_id: selectedId, author: String(data.get('author')).trim(), relationship: String(data.get('relationship')).trim(), message: String(data.get('message')).trim() }) }); endorsementForm.reset(); message(endorsementForm, 'Thank you. Your recommendation has been submitted for review.', true); } catch { message(endorsementForm, 'We could not submit your recommendation. Please try again later.'); } finally { button.disabled = false; }
+    });
+    load();
+  </script>
+</body>
+</html>
